@@ -2,14 +2,13 @@
 import os
 
 import re
-from app import Flask, request, jsonify, redirect
+from flask import Flask, request, jsonify, redirect  # Importa desde 'flask', no desde 'app'
 from flask_cors import CORS
 import mysql.connector
 from mysql.connector import errorcode
 from .enviar_encuesta import enviar_encuesta
 
-app = Flask(__name__)
-
+app = Flask(__name__)  
 # ----------------------------------------------------------------------
 # CONFIGURACIÓN DE CORS
 # ----------------------------------------------------------------------
