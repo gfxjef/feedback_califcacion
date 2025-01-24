@@ -1,11 +1,12 @@
 #app.py
+import os
 
 import re
 from flask import Flask, request, jsonify, redirect
 from flask_cors import CORS
 import mysql.connector
 from mysql.connector import errorcode
-from enviar_encuesta import enviar_encuesta  # Importación ABSOLUTA corregida
+from app.enviar_encuesta import enviar_encuesta
 
 app = Flask(__name__)
 
@@ -19,10 +20,10 @@ CORS(app, origins=["https://kossodo.estilovisual.com"])
 # CONFIGURACIÓN DE LA BASE DE DATOS
 # ----------------------------------------------------------------------
 DB_CONFIG = {
-    'user': 'atusalud_atusalud',
-    'password': 'kmachin1',
-    'host': 'atusaludlicoreria.com',
-    'database': 'atusalud_kossomet',
+    'user': os.environ.get('MYSQL_USER'),
+    'password': os.environ.get('MYSQL_PASSWORD'),
+    'host': os.environ.get('MYSQL_HOST'),
+    'database': os.environ.get('MYSQL_DATABASE'),
     'port': 3306
 }
 

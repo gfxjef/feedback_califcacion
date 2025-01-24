@@ -1,4 +1,5 @@
 #enviar_encuesta.py
+import os
 
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -54,8 +55,9 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
         # Configuración SMTP
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
-        sender_email = "analista.mkt@kossodo.com"
-        sender_password = "kfmklqrzzrengbhk"
+        sender_email = os.environ.get('EMAIL_USER')
+        sender_password = os.environ.get('EMAIL_PASSWORD')
+
 
         msg = MIMEMultipart('alternative')
         msg['Subject'] = f"Encuesta de Satisfacción - Consulta #{numero_consulta}"
