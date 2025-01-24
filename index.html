@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Encuestas</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header-section">
+            <div id="user-display" class="user-display"></div>
+            <button id="logoutBtn" class="gradient-btn logout-btn">Cerrar Sesión</button>
+        </header>
+        
+        <main class="main-content">
+            <h1 class="titulo-principal">GENERADOR DE ENCUESTAS</h1>
+            
+            <form id="form-encuesta">
+                <div class="form-group">
+                    <input type="text" id="nombres" placeholder="Nombres">
+                    <div id="nombres-error" class="error-message"></div>
+                </div>
+                
+                <div class="form-group">
+                    <input type="text" id="ruc" placeholder="RUC">
+                    <div id="ruc-error" class="error-message"></div>
+                </div>
+                
+                <div class="form-group">
+                    <input type="email" id="correo" placeholder="Correo electrónico">
+                    <div id="email-error" class="error-message"></div>
+                </div>
+                
+                <button type="submit" id="crear-encuesta" disabled>Crear Encuesta</button>
+            </form>
+
+            <div id="progress-container" class="hidden">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div id="success-message" class="hidden">Encuesta enviada!</div>
+            </div>
+
+            <div id="encuesta-container" class="hidden">
+                <!-- Aquí se generará la encuesta dinámicamente -->
+            </div>
+        </main>
+    </div>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+    <script src="endpoint.js"></script>
+</body>
+</html>
