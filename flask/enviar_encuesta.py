@@ -1,4 +1,4 @@
-# archivo: /home/gfxjef/kossomet/calificacion/enviar_encuesta.py
+#enviar_encuesta.py
 
 import smtplib
 from email.mime.multipart import MIMEMultipart

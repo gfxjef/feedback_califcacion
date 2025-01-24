@@ -1,4 +1,4 @@
-# archivo: /home/gfxjef/kossomet/calificacion/app.py
+#app.py
 
 import re
 from flask import Flask, request, jsonify, redirect
