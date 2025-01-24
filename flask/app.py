@@ -46,6 +46,8 @@ def get_db_connection():
             app.logger.error(f"Error de conexión a la base de datos: {err}")
         return None
 
+
+
 def create_table_if_not_exists(cursor):
     """
     Crea la tabla `envio_de_encuestas` si no existe.
@@ -199,6 +201,10 @@ def encuesta():
     finally:
         cursor.close()
         cnx.close()
+
+@app.route('/health')
+def health_check():
+    return jsonify({"status": "ok"}), 200
 
 
 if __name__ == '__main__':
