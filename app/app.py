@@ -2,11 +2,11 @@
 import os
 
 import re
-from flask import Flask, request, jsonify, redirect
+from app import Flask, request, jsonify, redirect
 from flask_cors import CORS
 import mysql.connector
 from mysql.connector import errorcode
-from app.enviar_encuesta import enviar_encuesta
+from .enviar_encuesta import enviar_encuesta
 
 app = Flask(__name__)
 
@@ -148,7 +148,7 @@ def encuesta():
     Endpoint que recibe los parámetros unique_id y calificacion
     y actualiza la calificación en la base de datos.
     """
-    from flask import redirect  # Asegúrate de tenerlo importado
+    from app import redirect  # Asegúrate de tenerlo importado
     
     unique_id = request.args.get('unique_id')
     calificacion = request.args.get('calificacion')
