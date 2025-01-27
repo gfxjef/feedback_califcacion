@@ -21,7 +21,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
     link_regular = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Regular"
     link_malo = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Malo"
 
-    # Construir el HTML del correo con el nuevo diseño
+    # Construir el HTML del correo con correcciones
     html_body = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -49,6 +49,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
                 width: 700px;
                 background-color: white;
                 border: 1px solid #ddd;
+                margin: 0 auto;
             }}
 
             .header {{
@@ -66,6 +67,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
             .body {{
                 padding: 0;
                 background-color: white;
+                text-align: center;
             }}
 
             .usuario {{
@@ -79,7 +81,14 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
                 font-weight: bold;
                 background: linear-gradient(to right, #6ab79d, #3a4263, #ef8535);
                 -webkit-background-clip: text;
+                background-clip: text;
                 -webkit-text-fill-color: transparent;
+                color: transparent;
+            }}
+
+            .texto {{
+                text-align: center;
+                margin: 20px 0;
             }}
 
             .votacion {{
@@ -88,6 +97,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
                 gap: 1rem;
                 background-color: white;
                 padding: 20px 0;
+                margin: 0 auto;
             }}
 
             .votacion img {{
@@ -144,10 +154,14 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
                 </div>
                 <div class="marcas">
                     <div class="izquierda">
-                        <img src="https://kossodo.estilovisual.com/marketing/calificacion/back2d.jpg" alt="Marcas">
+                        <a href="https://www.kossodo.com" target="_blank">
+                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/back2d.jpg" alt="Marcas">
+                        </a>
                     </div>
                     <div class="derecha">
-                        <img src="https://kossodo.estilovisual.com/marketing/calificacion/back2.jpg" alt="Marcas">
+                        <a href="https://www.kossomet.com" target="_blank">
+                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/back2.jpg" alt="Marcas">
+                        </a>
                     </div>
                 </div>
             </div>
@@ -157,7 +171,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
     """
 
     try:
-        # Configuración SMTP (mantenido igual)
+        # Configuración SMTP
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
         sender_email = os.environ.get('EMAIL_USER')
@@ -171,7 +185,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
         part_html = MIMEText(html_body, 'html')
         msg.attach(part_html)
 
-        # Enviar correo (mantenido igual)
+        # Enviar correo
         server = smtplib.SMTP(smtp_server, smtp_port)
         server.starttls()
         server.login(sender_email, sender_password)
