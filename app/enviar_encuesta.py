@@ -1,4 +1,3 @@
-#enviar_encuesta.py
 import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -94,23 +93,28 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
             .votacion {{
                 display: flex;
                 justify-content: center;
-                gap: 1rem;
+                align-items: center;
+                gap: 2rem;
                 background-color: white;
-                padding: 20px 0;
+                padding: 20px;
                 margin: 0 auto;
                 width: 100%;
+                max-width: 400px;
             }}
 
             .votacion a {{
-                display: inline-block;
+                display: block;
                 text-align: center;
+                width: 100px;
             }}
 
             .votacion img {{
-                width: 100px;
+                width: 100%;
                 height: auto;
                 cursor: pointer;
                 transition: transform 0.3s ease;
+                display: block;
+                margin: 0 auto;
             }}
 
             .votacion img:hover {{
@@ -129,6 +133,17 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
                 margin-bottom: 0;
                 gap: 0;
                 background-color: white;
+            }}
+
+            @media (max-width: 600px) {{
+                .votacion {{
+                    flex-direction: column;
+                    gap: 1rem;
+                }}
+
+                .votacion a {{
+                    width: 80px;
+                }}
             }}
         </style>
     </head>
