@@ -1,6 +1,5 @@
 #enviar_encuesta.py
 import os
-
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -14,61 +13,165 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
     if not (nombre_cliente and correo_cliente and asesor and numero_consulta):
         return {'status': 'error', 'message': 'Faltan parámetros'}, 400
 
-    # unique_id es el idcalificacion (quitando el prefijo CONS- de numero_consulta)
     unique_id = numero_consulta.replace("CONS-", "")
-
-    # Construir el HTML del correo
     base_url = "https://gfxjef.pythonanywhere.com/calificacion_firma"
+    
+    # Generar enlaces
     link_bueno = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Bueno"
     link_regular = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Regular"
     link_malo = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Malo"
 
+    # Construir el HTML del correo con el nuevo diseño
     html_body = f"""
-    <div style="text-align: center; font-family: 'Roboto', sans-serif;">
-      <p style="font-size: 44px; margin: 0 auto; max-width: 600px;
-         background: linear-gradient(to right, #ef8e35, #67b098);
-         -webkit-background-clip: text; color: transparent;">
-        <strong>Califica su atención</strong>
-      </p>
-      <br>
-      <p style="font-size: 14px; color: #4d4d4d; margin: 0 auto; max-width: 600px;">
-        Hola {nombre_cliente},<br><br>
-        Esperamos haber resuelto tus consultas de la mejor manera.
-        Por favor, selecciona un rostro según cómo percibiste la atención recibida:
-      </p>
-      <div style="margin-top: 10px;">
-        <a href="{link_bueno}" style="text-decoration: none;">
-          <img src="https://kossodo.estilovisual.com/marketing/firmas/img/bueno.jpg" alt="Bueno" width="100">
-        </a>
-        <a href="{link_regular}" style="text-decoration: none;">
-          <img src="https://kossodo.estilovisual.com/marketing/firmas/img/regular.jpg" alt="Regular" width="100">
-        </a>
-        <a href="{link_malo}" style="text-decoration: none;">
-          <img src="https://kossodo.estilovisual.com/marketing/firmas/img/malo.jpg" alt="Malo" width="100">
-        </a>
-      </div>
-    </div>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Mailing Layout</title>
+        <style>
+            * {{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }}
+
+            body {{
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 1rem;
+            }}
+
+            .container {{
+                width: 700px;
+                background-color: white;
+                border: 1px solid #ddd;
+            }}
+
+            .header {{
+                text-align: center;
+                padding: 0;
+                background-color: white;
+            }}
+
+            .header img {{
+                width: 100%;
+                height: auto;
+                display: block;
+            }}
+
+            .body {{
+                padding: 0;
+                background-color: white;
+            }}
+
+            .usuario {{
+                text-align: center;
+                font-size: 2rem;
+                background-color: white;
+                padding: 20px 0;
+            }}
+
+            .usuario b {{
+                font-weight: bold;
+                background: linear-gradient(to right, #6ab79d, #3a4263, #ef8535);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }}
+
+            .votacion {{
+                display: flex;
+                justify-content: center;
+                gap: 1rem;
+                background-color: white;
+                padding: 20px 0;
+            }}
+
+            .votacion img {{
+                width: 100px;
+                height: auto;
+                cursor: pointer;
+                transition: transform 0.3s ease;
+            }}
+
+            .votacion img:hover {{
+                transform: scale(1.1);
+            }}
+
+            .extras img, .marcas img {{
+                width: 100%;
+                height: auto;
+                display: block;
+            }}
+
+            .marcas {{
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 0;
+                gap: 0;
+                background-color: white;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <img src="https://kossodo.estilovisual.com/marketing/calificacion/califiac.png" alt="Header">
+            </div>
+            <div class="body">
+                <div class="usuario">
+                    <p>Hola, <b>{nombre_cliente}</b></p>
+                </div>
+                <div class="texto">
+                    <img src="https://kossodo.estilovisual.com/marketing/calificacion/esperamos.jpg" alt="Mensaje">
+                </div>
+                <div class="votacion">
+                    <a href="{link_bueno}">
+                        <img src="https://kossodo.estilovisual.com/marketing/firmas/img/bueno.jpg" alt="Bueno">
+                    </a>
+                    <a href="{link_regular}">
+                        <img src="https://kossodo.estilovisual.com/marketing/firmas/img/regular.jpg" alt="Regular">
+                    </a>
+                    <a href="{link_malo}">
+                        <img src="https://kossodo.estilovisual.com/marketing/firmas/img/malo.jpg" alt="Malo">
+                    </a>
+                </div>
+                <div class="extras">
+                    <img src="https://kossodo.estilovisual.com/marketing/calificacion/back1.jpg" alt="Extras">
+                </div>
+                <div class="marcas">
+                    <div class="izquierda">
+                        <img src="https://kossodo.estilovisual.com/marketing/calificacion/back2d.jpg" alt="Marcas">
+                    </div>
+                    <div class="derecha">
+                        <img src="https://kossodo.estilovisual.com/marketing/calificacion/back2.jpg" alt="Marcas">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
     """
 
     try:
-        # Configuración SMTP
+        # Configuración SMTP (mantenido igual)
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
         sender_email = os.environ.get('EMAIL_USER')
         sender_password = os.environ.get('EMAIL_PASSWORD')
-
 
         msg = MIMEMultipart('alternative')
         msg['Subject'] = f"Encuesta de Satisfacción - Consulta #{numero_consulta}"
         msg['From'] = sender_email
         msg['To'] = correo_cliente
 
-        # Parte HTML
         part_html = MIMEText(html_body, 'html')
         msg.attach(part_html)
 
-        # Enviar correo
+        # Enviar correo (mantenido igual)
         server = smtplib.SMTP(smtp_server, smtp_port)
         server.starttls()
         server.login(sender_email, sender_password)
