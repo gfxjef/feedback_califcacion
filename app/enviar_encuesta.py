@@ -21,7 +21,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
     link_regular = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Regular"
     link_malo = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Malo"
 
-    # Construir el HTML del correo con correcciones
+    # Construir el HTML del correo
     html_body = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -98,6 +98,12 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
                 background-color: white;
                 padding: 20px 0;
                 margin: 0 auto;
+                width: 100%;
+            }}
+
+            .votacion a {{
+                display: inline-block;
+                text-align: center;
             }}
 
             .votacion img {{
