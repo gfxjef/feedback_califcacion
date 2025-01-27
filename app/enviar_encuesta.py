@@ -38,9 +38,6 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
             body {{
                 font-family: Arial, sans-serif;
                 background-color: #f4f4f4;
-                display: flex;
-                justify-content: center;
-                align-items: center;
                 padding: 1rem;
             }}
 
@@ -91,21 +88,21 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
             }}
 
             .votacion {{
-                display: flex;
+                display: inline-flex;
                 justify-content: center;
                 align-items: center;
-                gap: 2rem;
+                gap: 0;
                 background-color: white;
-                padding: 20px;
+                padding: 0;
                 margin: 0 auto;
-                width: 100%;
-                max-width: 400px;
             }}
 
             .votacion a {{
                 display: block;
                 text-align: center;
-                width: 100px;
+                width: 133px; /* Ajustado para que los tres botones ocupen exactamente 400px */
+                padding: 0;
+                margin: 0;
             }}
 
             .votacion img {{
@@ -114,7 +111,8 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
                 cursor: pointer;
                 transition: transform 0.3s ease;
                 display: block;
-                margin: 0 auto;
+                margin: 0;
+                padding: 0;
             }}
 
             .votacion img:hover {{
@@ -136,13 +134,16 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
             }}
 
             @media (max-width: 600px) {{
-                .votacion {{
-                    flex-direction: column;
-                    gap: 1rem;
+                .container {{
+                    width: 100%;
                 }}
-
+                
+                .votacion {{
+                    width: 100%;
+                }}
+                
                 .votacion a {{
-                    width: 80px;
+                    width: 33.33%;
                 }}
             }}
         </style>
