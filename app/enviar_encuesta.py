@@ -87,6 +87,14 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
                 margin: 20px 0;
             }}
 
+            /* Nueva regla para limitar el tamaño de la imagen dentro de .texto */
+            .texto img {{
+                max-width: 100%;
+                height: auto;
+                display: block;
+                margin: 0 auto;
+            }}
+
             .votacion {{
                 display: inline-flex;
                 justify-content: center;
