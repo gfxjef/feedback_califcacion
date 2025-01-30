@@ -159,7 +159,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
     <body>
         <div class="container">
             <div class="header">
-                <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_1.jpg" alt="Header">
+                <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_12.jpg" alt="Header">
             </div>
             <div class="body">
                 <div class="usuario">
