@@ -170,13 +170,13 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
                 </div>
                 <div class="votacion">
                     <a href="{link_bueno}">
-                        <img src="https://kossodo.estilovisual.com/marketing/firmas/img/bueno.webp" alt="Bueno">
+                        <img src="https://kossodo.estilovisual.com/marketing/calificacion/bueno.webp" alt="Bueno">
                     </a>
                     <a href="{link_regular}">
-                        <img src="https://kossodo.estilovisual.com/marketing/firmas/img/regular.webp" alt="Regular">
+                        <img src="https://kossodo.estilovisual.com/marketing/calificacion/regular.webp" alt="Regular">
                     </a>
                     <a href="{link_malo}">
-                        <img src="https://kossodo.estilovisual.com/marketing/firmas/img/malo.webp" alt="Malo">
+                        <img src="https://kossodo.estilovisual.com/marketing/calificacion/malo.webp" alt="Malo">
                     </a>
                 </div>
                 <div class="extras">
