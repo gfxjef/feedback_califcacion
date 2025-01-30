@@ -40,7 +40,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
                     <!-- Encabezado con imagen -->
                     <tr>
                         <td style="padding:0; margin:0;" align="center">
-                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_12.jpg"
+                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_1.webp"
                                 alt="Header"
                                 style="display:block; border:none; width:700px; max-width:700px; height:auto;">
                         </td>
@@ -60,7 +60,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
                     <!-- Texto / Imagen de mensaje -->
                     <tr>
                         <td align="center" style="padding:10px;">
-                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_2.jpg"
+                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_2.webp"
                                  alt="Mensaje"
                                  style="display:block; border:none; width:700px; max-width:90%; height:auto;">
                         </td>
@@ -100,7 +100,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
                     <!-- Imagen extra -->
                     <tr>
                         <td align="center" style="padding:0;">
-                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_3.jpg"
+                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_3.webp"
                                  alt="Extras"
                                  style="display:block; border:none; width:700px; max-width:700px; height:auto;">
                         </td>
@@ -113,14 +113,14 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
                                 <tr>
                                     <td width="50%" valign="top" style="padding:0;">
                                         <a href="https://www.kossodo.com" target="_blank" style="text-decoration:none;">
-                                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_4.jpg"
+                                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_4.webp"
                                                  alt="Marcas 1"
                                                  style="display:block; border:none; width:100%; height:auto;">
                                         </a>
                                     </td>
                                     <td width="50%" valign="top" style="padding:0;">
                                         <a href="https://www.kossomet.com" target="_blank" style="text-decoration:none;">
-                                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_5.jpg"
+                                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_5.webp"
                                                  alt="Marcas 2"
                                                  style="display:block; border:none; width:100%; height:auto;">
                                         </a>
