@@ -20,182 +20,120 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
     link_regular = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Regular"
     link_malo = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Malo"
 
-    # Construir el HTML del correo
+    # Construir el HTML del correo (estructura con tablas para mejor compatibilidad)
     html_body = f"""
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="es">
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Mailing Layout</title>
-        <style>
-            * {{
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }}
-
-            body {{
-                font-family: Arial, sans-serif;
-                background-color: #f4f4f4;
-                padding: 1rem;
-            }}
-
-            .container {{
-                width: 700px;
-                background-color: white;
-                border: 1px solid #ddd;
-                margin: 0 auto;
-            }}
-
-            .header {{
-                text-align: center;
-                padding: 0;
-                background-color: white;
-            }}
-
-            .header img {{
-                width: 100%;
-                height: auto;
-                display: block;
-            }}
-
-            .body {{
-                padding: 0;
-                background-color: white;
-                text-align: center;
-            }}
-
-            .usuario {{
-                text-align: center;
-                font-size: 2rem;
-                background-color: white;
-                padding: 20px 0;
-            }}
-
-            .usuario b {{
-                font-weight: bold;
-                background: linear-gradient(to right, #6ab79d, #3a4263, #ef8535);
-                -webkit-background-clip: text;
-                background-clip: text;
-                -webkit-text-fill-color: transparent;
-                color: transparent;
-            }}
-
-            .texto {{
-                text-align: center;
-                margin: 20px 0;
-            }}
-
-            /* Nueva regla para limitar el tamaño de la imagen dentro de .texto */
-            .texto img {{
-                max-width: 100%;
-                height: auto;
-                display: block;
-                margin: 0 auto;
-            }}
-
-            .votacion {{
-                display: inline-flex;
-                justify-content: center;
-                align-items: center;
-                gap: 0;
-                background-color: white;
-                padding: 0;
-                margin: 0 auto;
-            }}
-
-            .votacion a {{
-                display: block;
-                text-align: center;
-                width: 133px; /* Ajustado para que los tres botones ocupen exactamente 400px */
-                padding: 0;
-                margin: 0;
-            }}
-
-            .votacion img {{
-                width: 100%;
-                height: auto;
-                cursor: pointer;
-                transition: transform 0.3s ease;
-                display: block;
-                margin: 0;
-                padding: 0;
-            }}
-
-            .votacion img:hover {{
-                transform: scale(1.1);
-            }}
-
-            .extras img, .marcas img {{
-                width: 100%;
-                height: auto;
-                display: block;
-            }}
-
-            .marcas {{
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 0;
-                gap: 0;
-                background-color: white;
-            }}
-
-            @media (max-width: 600px) {{
-                .container {{
-                    width: 100%;
-                }}
-                
-                .votacion {{
-                    width: 100%;
-                }}
-                
-                .votacion a {{
-                    width: 33.33%;
-                }}
-            }}
-        </style>
+        <meta charset="UTF-8" />
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Encuesta de Satisfacción</title>
     </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_12.jpg" alt="Header">
-            </div>
-            <div class="body">
-                <div class="usuario">
-                    <p>Hola, <b>{nombre_cliente}</b></p>
-                </div>
-                <div class="texto">
-                    <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_2.jpg" alt="Mensaje">
-                </div>
-                <div class="votacion">
-                    <a href="{link_bueno}">
-                        <img src="https://kossodo.estilovisual.com/marketing/calificacion/bueno.webp" alt="Bueno">
-                    </a>
-                    <a href="{link_regular}">
-                        <img src="https://kossodo.estilovisual.com/marketing/calificacion/regular.webp" alt="Regular">
-                    </a>
-                    <a href="{link_malo}">
-                        <img src="https://kossodo.estilovisual.com/marketing/calificacion/malo.webp" alt="Malo">
-                    </a>
-                </div>
-                <div class="extras">
-                    <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_3.jpg" alt="Extras">
-                </div>
-                <div class="marcas">
-                    <div class="izquierda">
-                        <a href="https://www.kossodo.com" target="_blank">
-                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_4.jpg" alt="Marcas">
-                        </a>
-                    </div>
-                    <div class="derecha">
-                        <a href="https://www.kossomet.com" target="_blank">
-                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_5.jpg" alt="Marcas">
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <body style="margin:0; padding:0; background-color:#f4f4f4; font-family: Arial, sans-serif;">
+    
+    <!-- Contenedor principal -->
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f4f4f4" style="padding:1rem 0;">
+        <tr>
+            <td align="center" valign="top">
+                <table width="700" border="0" cellspacing="0" cellpadding="0" style="border:1px solid #ddd; background-color:#ffffff;">
+                    <!-- Encabezado con imagen -->
+                    <tr>
+                        <td style="padding:0; margin:0;" align="center">
+                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_12.jpg"
+                                alt="Header"
+                                style="display:block; border:none; width:700px; max-width:700px; height:auto;">
+                        </td>
+                    </tr>
+
+                    <!-- Saludo al usuario -->
+                    <tr>
+                        <td align="center" style="padding:20px;">
+                            <h1 style="font-size: 24px; margin: 0; color:#000;">
+                                Hola, <span style="font-weight:bold; background: -webkit-linear-gradient(#6ab79d, #3a4263, #ef8535); -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">
+                                    {nombre_cliente}
+                                </span>
+                            </h1>
+                        </td>
+                    </tr>
+
+                    <!-- Texto / Imagen de mensaje -->
+                    <tr>
+                        <td align="center" style="padding:10px;">
+                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_2.jpg"
+                                 alt="Mensaje"
+                                 style="display:block; border:none; width:700px; max-width:90%; height:auto;">
+                        </td>
+                    </tr>
+
+                    <!-- Bloque de votación -->
+                    <tr>
+                        <td align="center" style="padding:10px;">
+                            <table border="0" cellspacing="0" cellpadding="0" style="text-align:center;">
+                                <tr>
+                                    <td>
+                                        <a href="{link_bueno}" target="_blank" style="text-decoration:none;">
+                                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/bueno.webp"
+                                                 alt="Bueno"
+                                                 style="display:block; border:none; width:133px; height:auto; margin:0 auto;">
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="{link_regular}" target="_blank" style="text-decoration:none;">
+                                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/regular.webp"
+                                                 alt="Regular"
+                                                 style="display:block; border:none; width:133px; height:auto; margin:0 auto;">
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="{link_malo}" target="_blank" style="text-decoration:none;">
+                                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/malo.webp"
+                                                 alt="Malo"
+                                                 style="display:block; border:none; width:133px; height:auto; margin:0 auto;">
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Imagen extra -->
+                    <tr>
+                        <td align="center" style="padding:0;">
+                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_3.jpg"
+                                 alt="Extras"
+                                 style="display:block; border:none; width:700px; max-width:700px; height:auto;">
+                        </td>
+                    </tr>
+
+                    <!-- Bloque de marcas: dos columnas -->
+                    <tr>
+                        <td align="center" style="padding:0;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="text-align:center;">
+                                <tr>
+                                    <td width="50%" valign="top" style="padding:0;">
+                                        <a href="https://www.kossodo.com" target="_blank" style="text-decoration:none;">
+                                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_4.jpg"
+                                                 alt="Marcas 1"
+                                                 style="display:block; border:none; width:100%; height:auto;">
+                                        </a>
+                                    </td>
+                                    <td width="50%" valign="top" style="padding:0;">
+                                        <a href="https://www.kossomet.com" target="_blank" style="text-decoration:none;">
+                                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_5.jpg"
+                                                 alt="Marcas 2"
+                                                 style="display:block; border:none; width:100%; height:auto;">
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                </table> <!-- Fin contenedor interno (700px) -->
+            </td>
+        </tr>
+    </table> <!-- Fin contenedor principal -->
     </body>
     </html>
     """
@@ -212,7 +150,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
         msg['From'] = sender_email
         msg['To'] = correo_cliente
 
-        part_html = MIMEText(html_body, 'html')
+        part_html = MIMEText(html_body, 'html', 'utf-8')
         msg.attach(part_html)
 
         # Enviar correo
