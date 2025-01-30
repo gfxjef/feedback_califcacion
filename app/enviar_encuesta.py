@@ -65,7 +65,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
                     <tr>
                         <td align="center" style="padding:20px;">
                             <h1 style="font-size: 24px; margin: 0; color:#3e4660;">
-                                Hola, <span style="font-weight:bold; background: -webkit-linear-gradient(#6ab79d, #3a4263, #ef8535); -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">
+                                Hola, <span style="font-weight:bold; color:#3e4660;">
                                     {nombre_cliente}
                                 </span>
                             </h1>
