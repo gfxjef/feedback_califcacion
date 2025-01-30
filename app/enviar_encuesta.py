@@ -159,38 +159,38 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
     <body>
         <div class="container">
             <div class="header">
-                <img src="https://kossodo.estilovisual.com/marketing/calificacion/califiac.png" alt="Header">
+                <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_1.webp" alt="Header">
             </div>
             <div class="body">
                 <div class="usuario">
                     <p>Hola, <b>{nombre_cliente}</b></p>
                 </div>
                 <div class="texto">
-                    <img src="https://kossodo.estilovisual.com/marketing/calificacion/esperamos.jpg" alt="Mensaje">
+                    <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_2.webp" alt="Mensaje">
                 </div>
                 <div class="votacion">
                     <a href="{link_bueno}">
-                        <img src="https://kossodo.estilovisual.com/marketing/firmas/img/bueno.jpg" alt="Bueno">
+                        <img src="https://kossodo.estilovisual.com/marketing/firmas/img/bueno.webp" alt="Bueno">
                     </a>
                     <a href="{link_regular}">
-                        <img src="https://kossodo.estilovisual.com/marketing/firmas/img/regular.jpg" alt="Regular">
+                        <img src="https://kossodo.estilovisual.com/marketing/firmas/img/regular.webp" alt="Regular">
                     </a>
                     <a href="{link_malo}">
-                        <img src="https://kossodo.estilovisual.com/marketing/firmas/img/malo.jpg" alt="Malo">
+                        <img src="https://kossodo.estilovisual.com/marketing/firmas/img/malo.webp" alt="Malo">
                     </a>
                 </div>
                 <div class="extras">
-                    <img src="https://kossodo.estilovisual.com/marketing/calificacion/back1.jpg" alt="Extras">
+                    <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_3.webp" alt="Extras">
                 </div>
                 <div class="marcas">
                     <div class="izquierda">
                         <a href="https://www.kossodo.com" target="_blank">
-                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/back2d.jpg" alt="Marcas">
+                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_4.webp" alt="Marcas">
                         </a>
                     </div>
                     <div class="derecha">
                         <a href="https://www.kossomet.com" target="_blank">
-                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/back2.jpg" alt="Marcas">
+                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_5.webp" alt="Marcas">
                         </a>
                     </div>
                 </div>
