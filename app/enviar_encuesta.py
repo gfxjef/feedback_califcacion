@@ -1,5 +1,3 @@
-# enviar_encuesta.py
-
 import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
