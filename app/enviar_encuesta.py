@@ -20,7 +20,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
 
     # Ajusta esta base_url a la ruta donde está tu endpoint /encuesta
     # (Por ejemplo, si tu backend está en "https://mi-app.onrender.com", cámbialo).
-    base_url = "https://feedback-califcacion.onrender.com/calificacion_firma"
+    base_url = "https://feedback-califcacion.onrender.com"
 
     # Generar enlaces para Bueno, Regular, Malo
     link_bueno = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Bueno"
