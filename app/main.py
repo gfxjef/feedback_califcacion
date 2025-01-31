@@ -2,16 +2,13 @@
 
 import os
 import re
-import requests  # Para hacer la petición a la API externa
-from flask import Flask, request, jsonify, redirect
-from flask_cors import CORS
+import requests
 import mysql.connector
 from mysql.connector import errorcode
-
-# FTP
+from flask import Flask, request, jsonify, redirect
+from flask_cors import CORS  # <--- Importante
 import ftplib
 
-# Importar la función para enviar la encuesta
 from .enviar_encuesta import enviar_encuesta
 
 app = Flask(__name__)
@@ -19,8 +16,11 @@ app = Flask(__name__)
 # ----------------------------------------------------------------------
 # CONFIGURACIÓN DE CORS
 # ----------------------------------------------------------------------
-# Permite solicitudes desde https://kossodo.estilovisual.com para TODAS las rutas.
-CORS(app, origins=["https://kossodo.estilovisual.com"])
+# Permite solicitudes desde atusaludlicoreria.com y kossodo.estilovisual.com, etc.
+CORS(app, resources={r"/*": {"origins": [
+    "https://atusaludlicoreria.com",
+    "https://kossodo.estilovisual.com"
+]}})
 
 # ----------------------------------------------------------------------
 # CONFIGURACIÓN DE LA BASE DE DATOS
