@@ -323,68 +323,46 @@ def guardar_observaciones():
 
 @app.route('/segmento_imagenes', methods=['GET'])
 def segmento_imagenes():
-    """
-    1. Recibe unique_id
-    2. Busca RUC en la BD
-    3. Llama la API externa (http://209.45.52.219:8080/mkt/lista-clientes)
-       y busca la fila donde NumeroDocumento == RUC
-    4. Obtiene 'Segmento' de esa fila y determina la carpeta
-    5. Conecta por FTP para listar imágenes en esa carpeta
-    6. Retorna un JSON con las URLs de las imágenes
-    """
     unique_id = request.args.get('unique_id')
     if not unique_id:
         return jsonify({'status': 'error', 'message': 'Falta el parámetro unique_id'}), 400
 
-    # 1. Obtener la RUC de la BD
+    # 1. RUC desde BD
     cnx = get_db_connection()
-    if cnx is None:
-        return jsonify({'status': 'error', 'message': 'No se pudo conectar a la BD'}), 500
+    cursor = cnx.cursor()
+    cursor.execute("SELECT ruc FROM envio_de_encuestas WHERE idcalificacion = %s", (unique_id,))
+    row = cursor.fetchone()
+    cursor.close()
+    cnx.close()
+    if not row:
+        return jsonify({'status': 'error', 'message': 'No se encontró ese unique_id.'}), 404
 
+    ruc_db = row[0]
+    app.logger.info(f"(DEBUG) Para unique_id={unique_id}, RUC BD='{ruc_db}', len={len(ruc_db)}")
+
+    # 2. Consumir la API
     try:
-        cursor = cnx.cursor()
-        cursor.execute(f"SELECT ruc FROM {TABLE_NAME} WHERE idcalificacion = %s", (unique_id,))
-        row = cursor.fetchone()
-        if not row:
-            return jsonify({'status': 'error', 'message': 'No se encontró el registro con ese unique_id.'}), 404
+        response = requests.get("http://209.45.52.219:8080/mkt/lista-clientes", timeout=10)
+        data = response.json()
 
-        ruc = row[0]  # la ruc guardada en la BD
-    except mysql.connector.Error as err:
-        app.logger.error(f"Error al obtener RUC: {err}")
-        return jsonify({'status': 'error', 'message': 'Error al obtener RUC'}), 500
-    finally:
-        cursor.close()
-        cnx.close()
-
-    # Para debugging:
-    app.logger.info(f"RUC desde BD (unique_id={unique_id}): '{ruc}'")
-
-    # 2. Llamar a la API remota para listar los clientes y buscar la fila con NumeroDocumento == ruc
-    try:
-        lista_url = "http://209.45.52.219:8080/mkt/lista-clientes"
-        response = requests.get(lista_url, timeout=10)
-        data = response.json()  # Se asume que retorna un JSON con un array de objetos
-
-        ruc_db = str(ruc).strip()
+        ruc_db_clean = ruc_db.strip()
         segmento_encontrado = None
 
         for cliente in data:
             numero_doc_api = str(cliente.get("NumeroDocumento", "")).strip()
-            # Debug: 
-            app.logger.info(f"Comparando RUC BD='{ruc_db}' con API='{numero_doc_api}'")
+            # LOG
+            app.logger.info(f"(DEBUG) Comparo BD='{ruc_db_clean}' vs API='{numero_doc_api}'")
 
-            if numero_doc_api == ruc_db:
+            if numero_doc_api == ruc_db_clean:
                 segmento_encontrado = cliente.get("Segmento", "")
                 break
 
         if not segmento_encontrado:
-            # No se encontró RUC o Segmento => "Otros"
             segmento_encontrado = "Otros"
-
-    except (requests.RequestException, ValueError) as err:
-        app.logger.error(f"Error al consumir la API externa: {err}")
-        # Por defecto, mandar a "Otros"
+    except Exception as e:
+        app.logger.error(f"Error consultando API: {e}")
         segmento_encontrado = "Otros"
+
 
     # Resto del código para mapear 'segmento_encontrado' a carpeta, listar en FTP, etc.
     carpeta = SEGMENTO_MAPPING.get(segmento_encontrado, "Otros")
