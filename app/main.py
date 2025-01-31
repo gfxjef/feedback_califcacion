@@ -348,7 +348,7 @@ def segmento_imagenes():
         if not row:
             return jsonify({'status': 'error', 'message': 'No se encontró el registro con ese unique_id.'}), 404
 
-        ruc = row[0]  # la ruc
+        ruc = row[0]  # la ruc guardada en la BD
     except mysql.connector.Error as err:
         app.logger.error(f"Error al obtener RUC: {err}")
         return jsonify({'status': 'error', 'message': 'Error al obtener RUC'}), 500
@@ -356,23 +356,29 @@ def segmento_imagenes():
         cursor.close()
         cnx.close()
 
+    # Para debugging:
+    app.logger.info(f"RUC desde BD (unique_id={unique_id}): '{ruc}'")
+
     # 2. Llamar a la API remota para listar los clientes y buscar la fila con NumeroDocumento == ruc
     try:
         lista_url = "http://209.45.52.219:8080/mkt/lista-clientes"
         response = requests.get(lista_url, timeout=10)
         data = response.json()  # Se asume que retorna un JSON con un array de objetos
 
-        # Buscar la fila donde NumeroDocumento = ruc
+        ruc_db = str(ruc).strip()
         segmento_encontrado = None
+
         for cliente in data:
-            if str(cliente.get("NumeroDocumento")) == str(ruc):
-                # Extraemos el campo "Segmento"
+            numero_doc_api = str(cliente.get("NumeroDocumento", "")).strip()
+            # Debug: 
+            app.logger.info(f"Comparando RUC BD='{ruc_db}' con API='{numero_doc_api}'")
+
+            if numero_doc_api == ruc_db:
                 segmento_encontrado = cliente.get("Segmento", "")
                 break
 
         if not segmento_encontrado:
-            # Si no se encontró ese RUC o no hay Segmento
-            # Asignamos "Otros" por defecto
+            # No se encontró RUC o Segmento => "Otros"
             segmento_encontrado = "Otros"
 
     except (requests.RequestException, ValueError) as err:
@@ -380,37 +386,33 @@ def segmento_imagenes():
         # Por defecto, mandar a "Otros"
         segmento_encontrado = "Otros"
 
-    # 3. Determinar la carpeta según el Segmento
+    # Resto del código para mapear 'segmento_encontrado' a carpeta, listar en FTP, etc.
     carpeta = SEGMENTO_MAPPING.get(segmento_encontrado, "Otros")
 
-    # 4. Listar las imágenes de la carpeta en el FTP
     image_filenames = []
     try:
         ftp = ftplib.FTP(FTP_HOST, FTP_USER, FTP_PASS)
-        ftp.cwd(f"{FTP_BASE_FOLDER}/{carpeta}")  # /marketing/calificacion/categorias/<carpeta>
-        # Listar archivos
+        ftp.cwd(f"{FTP_BASE_FOLDER}/{carpeta}")
         files = ftp.nlst()
-        # Filtrar solo los que aparenten ser imágenes (png, jpg, webp, etc.)
+
         valid_extensions = ('.jpg', '.jpeg', '.png', '.webp', '.gif')
         image_filenames = [f for f in files if f.lower().endswith(valid_extensions)]
         ftp.quit()
     except ftplib.all_errors as e:
         app.logger.error(f"Error FTP: {e}")
-        # Si falla, la lista se queda vacía
 
-    # 5. Construir la lista de URLs absolutas
     image_urls = [
         f"{HTTP_BASE_URL}/{carpeta}/{filename}"
         for filename in image_filenames
     ]
 
-    # 6. Devolver JSON con la lista de URLs
     return jsonify({
         'status': 'success',
         'segmento': segmento_encontrado,
         'carpeta': carpeta,
         'image_urls': image_urls
     }), 200
+
 
 
 @app.route('/health')
