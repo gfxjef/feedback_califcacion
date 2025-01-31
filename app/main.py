@@ -1,14 +1,17 @@
-#app.py
-import os
+# main.py
 
+import os
 import re
-from flask import Flask, request, jsonify, redirect  # Importa desde 'flask', no desde 'app'
+from flask import Flask, request, jsonify, redirect
 from flask_cors import CORS
 import mysql.connector
 from mysql.connector import errorcode
+
+# Importar la función para enviar la encuesta
 from .enviar_encuesta import enviar_encuesta
 
-app = Flask(__name__)  
+app = Flask(__name__)
+
 # ----------------------------------------------------------------------
 # CONFIGURACIÓN DE CORS
 # ----------------------------------------------------------------------
@@ -28,6 +31,7 @@ DB_CONFIG = {
 
 TABLE_NAME = "envio_de_encuestas"
 
+
 def get_db_connection():
     """
     Establece la conexión con la base de datos.
@@ -46,11 +50,10 @@ def get_db_connection():
         return None
 
 
-
 def create_table_if_not_exists(cursor):
     """
     Crea la tabla `envio_de_encuestas` si no existe.
-    Incluye la columna `calificacion` para almacenar las respuestas de la encuesta.
+    Incluye la columna `calificacion` y, si es necesario, agrega la columna `observaciones`.
     """
     create_table_query = f"""
     CREATE TABLE IF NOT EXISTS `{TABLE_NAME}` (
@@ -64,6 +67,22 @@ def create_table_if_not_exists(cursor):
     ) ENGINE=InnoDB;
     """
     cursor.execute(create_table_query)
+
+    # Agregar la columna observaciones si no existe
+    # Se hace un ALTER TABLE en un try/except por si la columna ya existe
+    try:
+        add_column_query = f"""
+        ALTER TABLE `{TABLE_NAME}`
+        ADD COLUMN `observaciones` TEXT NULL AFTER `calificacion`;
+        """
+        cursor.execute(add_column_query)
+    except mysql.connector.Error as err:
+        # Si la columna ya existe, ignorar el error
+        if err.errno == 1060:  # Error 1060: Duplicate column name
+            pass
+        else:
+            raise
+
 
 @app.route('/submit', methods=['POST'])
 def submit():
@@ -100,7 +119,7 @@ def submit():
 
     try:
         cursor = cnx.cursor()
-        # Crea la tabla si no existe
+        # Crea la tabla si no existe (y la columna observaciones también)
         create_table_if_not_exists(cursor)
 
         # Insertar el registro
@@ -141,14 +160,14 @@ def submit():
 
     return jsonify({'status': 'success', 'message': 'Datos guardados y encuesta enviada correctamente.'}), 200
 
+
 @app.route('/encuesta', methods=['GET'])
 def encuesta():
     """
     Endpoint que recibe los parámetros unique_id y calificacion
     y actualiza la calificación en la base de datos.
+    Luego redirige a la página correspondiente.
     """
-    from app import redirect  # Asegúrate de tenerlo importado
-    
     unique_id = request.args.get('unique_id')
     calificacion = request.args.get('calificacion')
 
@@ -190,8 +209,8 @@ def encuesta():
         cursor.execute(update_query, (calificacion, unique_id))
         cnx.commit()
 
-        # Redireccionar a la pantalla de "Gracias"
-        return redirect("https://atusaludlicoreria.com/kssd/firma/encuesta-gracias.html")
+        # Redireccionar a la pantalla de "Gracias" con unique_id para comentarios
+        return redirect(f"https://atusaludlicoreria.com/kssd/firma/encuesta-gracias.html?unique_id={unique_id}")
 
     except mysql.connector.Error as err:
         app.logger.error(f"Error al actualizar la calificación: {err}")
@@ -201,6 +220,53 @@ def encuesta():
         cursor.close()
         cnx.close()
 
+
+@app.route('/observaciones', methods=['POST'])
+def guardar_observaciones():
+    """
+    Recibe { "unique_id": ..., "comentario": ... } por JSON
+    y actualiza la columna 'observaciones' en el registro correspondiente.
+    """
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({'status': 'error', 'message': 'Falta el body JSON'}), 400
+
+    unique_id = data.get('unique_id')
+    comentario = data.get('comentario')
+
+    if not unique_id or not comentario:
+        return jsonify({'status': 'error', 'message': 'Faltan unique_id o comentario'}), 400
+
+    cnx = get_db_connection()
+    if cnx is None:
+        return jsonify({'status': 'error', 'message': 'No se pudo conectar a la BD'}), 500
+
+    try:
+        cursor = cnx.cursor()
+        # Verificar si existe el registro
+        select_query = f"SELECT idcalificacion FROM {TABLE_NAME} WHERE idcalificacion = %s"
+        cursor.execute(select_query, (unique_id,))
+        row = cursor.fetchone()
+
+        if not row:
+            return jsonify({'status': 'error', 'message': 'No se encontró ese unique_id.'}), 404
+
+        # Actualizar columna 'observaciones'
+        update_query = f"UPDATE {TABLE_NAME} SET observaciones = %s WHERE idcalificacion = %s"
+        cursor.execute(update_query, (comentario, unique_id))
+        cnx.commit()
+
+        return jsonify({'status': 'success', 'message': 'Comentario guardado correctamente'}), 200
+
+    except mysql.connector.Error as err:
+        app.logger.error(f"Error al actualizar observaciones: {err}")
+        return jsonify({'status': 'error', 'message': 'Error al actualizar observaciones'}), 500
+
+    finally:
+        cursor.close()
+        cnx.close()
+
+
 @app.route('/health')
 def health_check():
     return jsonify({"status": "ok"}), 200
@@ -208,5 +274,5 @@ def health_check():
 
 if __name__ == '__main__':
     # Ejecución local (modo desarrollo).
-    # En producción (PythonAnywhere), se maneja vía WSGI.
+    # En producción (PythonAnywhere o Render), se maneja vía WSGI.
     app.run()
