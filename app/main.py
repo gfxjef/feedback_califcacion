@@ -5,7 +5,7 @@ from flask_cors import CORS
 import mysql.connector
 from mysql.connector import errorcode
 
-# Importar la función para enviar la encuesta
+# Importar la función para enviar la encuesta (sin punto inicial)
 from enviar_encuesta import enviar_encuesta
 
 app = Flask(__name__)
@@ -29,7 +29,6 @@ DB_CONFIG = {
 
 TABLE_NAME = "envio_de_encuestas"
 
-
 def get_db_connection():
     """
     Establece la conexión con la base de datos.
@@ -46,7 +45,6 @@ def get_db_connection():
         else:
             app.logger.error(f"Error de conexión a la base de datos: {err}")
         return None
-
 
 def create_table_if_not_exists(cursor):
     """
@@ -67,7 +65,6 @@ def create_table_if_not_exists(cursor):
     cursor.execute(create_table_query)
 
     # Agregar la columna observaciones si no existe
-    # Se hace un ALTER TABLE en un try/except por si la columna ya existe
     try:
         add_column_query = f"""
         ALTER TABLE `{TABLE_NAME}`
@@ -81,16 +78,12 @@ def create_table_if_not_exists(cursor):
         else:
             raise
 
-
 @app.route('/submit', methods=['POST'])
 def submit():
     """
     Endpoint que recibe datos desde un formulario (asesor, nombres, ruc, correo)
     y registra esos datos en la base de datos. Además, envía una encuesta por correo.
     """
-    # ------------------------------------------------------------------
-    # 1. Obtener y Validar Datos del Formulario
-    # ------------------------------------------------------------------
     asesor = request.form.get('asesor')
     nombres = request.form.get('nombres')
     ruc = request.form.get('ruc')
@@ -99,54 +92,37 @@ def submit():
     if not all([asesor, nombres, ruc, correo]):
         return jsonify({'status': 'error', 'message': 'Faltan campos por completar.'}), 400
 
-    # Validar el formato del correo
     EMAIL_REGEX = re.compile(r"[^@]+@[^@]+\.[^@]+")
     if not EMAIL_REGEX.match(correo):
         return jsonify({'status': 'error', 'message': 'Correo electrónico inválido.'}), 400
 
-    # Validar RUC => 11 dígitos
     if not ruc.isdigit() or len(ruc) != 11:
         return jsonify({'status': 'error', 'message': 'RUC inválido. Debe contener 11 dígitos.'}), 400
 
-    # ------------------------------------------------------------------
-    # 2. Conexión a la Base de Datos e Inserción
-    # ------------------------------------------------------------------
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
 
     try:
         cursor = cnx.cursor()
-        # Crea la tabla si no existe (y la columna observaciones también)
         create_table_if_not_exists(cursor)
-
-        # Insertar el registro
         insert_query = f"""
         INSERT INTO `{TABLE_NAME}` (asesor, nombres, ruc, correo)
         VALUES (%s, %s, %s, %s);
         """
         cursor.execute(insert_query, (asesor, nombres, ruc, correo))
         cnx.commit()
-
-        # Obtener el ID insertado (idcalificacion)
         idcalificacion = cursor.lastrowid
-        # Este será tu "numero_consulta", por ejemplo "CONS-000001"
         numero_consulta = f"CONS-{idcalificacion:06d}"
-
     except mysql.connector.Error as err:
         app.logger.error(f"Error al insertar los datos en la base de datos: {err}")
         return jsonify({'status': 'error', 'message': 'Error al insertar los datos en la base de datos.'}), 500
-
     finally:
         cursor.close()
         cnx.close()
 
-    # ------------------------------------------------------------------
-    # 3. Enviar la Encuesta por Correo
-    # ------------------------------------------------------------------
     nombre_cliente = nombres
     correo_cliente = correo
-    # Llamar a la función para enviar la encuesta, pasándole 'numero_consulta'
     encuesta_response, status_code = enviar_encuesta(
         nombre_cliente,
         correo_cliente,
@@ -159,14 +135,8 @@ def submit():
 
     return jsonify({'status': 'success', 'message': 'Datos guardados y encuesta enviada correctamente.'}), 200
 
-
 @app.route('/encuesta', methods=['GET'])
 def encuesta():
-    """
-    Endpoint que recibe los parámetros unique_id y calificacion
-    y actualiza la calificación en la base de datos.
-    Luego redirige a la página correspondiente.
-    """
     unique_id = request.args.get('unique_id')
     calificacion = request.args.get('calificacion')
 
@@ -183,7 +153,6 @@ def encuesta():
 
     try:
         cursor = cnx.cursor()
-        # Buscamos si existe el registro con idcalificacion = unique_id
         select_query = f"SELECT calificacion FROM {TABLE_NAME} WHERE idcalificacion = %s"
         cursor.execute(select_query, (unique_id,))
         row = cursor.fetchone()
@@ -192,11 +161,9 @@ def encuesta():
             return jsonify({'status': 'error', 'message': 'No se encontró el registro con ese unique_id.'}), 404
 
         calificacion_actual = row[0]
-        # Si ya estaba calificado:
         if calificacion_actual is not None and calificacion_actual.strip() != "":
             return redirect("https://atusaludlicoreria.com/kssd/firma/encuesta-ya-respondida.html")
 
-        # Si no estaba calificado, lo guardamos:
         update_query = f"""
             UPDATE {TABLE_NAME}
             SET calificacion = %s
@@ -205,24 +172,16 @@ def encuesta():
         cursor.execute(update_query, (calificacion, unique_id))
         cnx.commit()
 
-        # Redireccionar a la pantalla de "Gracias" con unique_id para comentarios
         return redirect(f"https://atusaludlicoreria.com/kssd/firma/encuesta-gracias.html?unique_id={unique_id}")
-
     except mysql.connector.Error as err:
         app.logger.error(f"Error al actualizar la calificación: {err}")
         return jsonify({'status': 'error', 'message': 'Error al actualizar la calificación.'}), 500
-
     finally:
         cursor.close()
         cnx.close()
 
-
 @app.route('/observaciones', methods=['POST'])
 def guardar_observaciones():
-    """
-    Recibe { "unique_id": ..., "comentario": ... } por JSON
-    y actualiza la columna 'observaciones' en el registro correspondiente.
-    """
     data = request.get_json(silent=True)
     if not data:
         return jsonify({'status': 'error', 'message': 'Falta el body JSON'}), 400
@@ -239,7 +198,6 @@ def guardar_observaciones():
 
     try:
         cursor = cnx.cursor()
-        # Verificar si existe el registro con idcalificacion = unique_id
         select_query = f"SELECT idcalificacion FROM {TABLE_NAME} WHERE idcalificacion = %s"
         cursor.execute(select_query, (unique_id,))
         row = cursor.fetchone()
@@ -247,28 +205,21 @@ def guardar_observaciones():
         if not row:
             return jsonify({'status': 'error', 'message': 'No se encontró ese unique_id.'}), 404
 
-        # Actualizar columna 'observaciones'
         update_query = f"UPDATE {TABLE_NAME} SET observaciones = %s WHERE idcalificacion = %s"
         cursor.execute(update_query, (comentario, unique_id))
         cnx.commit()
 
         return jsonify({'status': 'success', 'message': 'Comentario guardado correctamente'}), 200
-
     except mysql.connector.Error as err:
         app.logger.error(f"Error al actualizar observaciones: {err}")
         return jsonify({'status': 'error', 'message': 'Error al actualizar observaciones'}), 500
-
     finally:
         cursor.close()
         cnx.close()
-
 
 @app.route('/health')
 def health_check():
     return jsonify({"status": "ok"}), 200
 
-
 if __name__ == '__main__':
-    # Ejecución local (modo desarrollo).
-    # En producción (PythonAnywhere o Render), se maneja vía WSGI.
     app.run()
