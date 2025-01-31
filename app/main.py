@@ -6,8 +6,8 @@ import mysql.connector
 from mysql.connector import errorcode
 
 # Importar la función para enviar la encuesta.
-# Se asume que enviar_encuesta.py está en el mismo directorio.
-from enviar_encuesta import enviar_encuesta
+# NOTA: Al desplegar como paquete 'app', se debe importar de 'app.enviar_encuesta'
+from app.enviar_encuesta import enviar_encuesta
 
 app = Flask(__name__)
 
