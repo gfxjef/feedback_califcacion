@@ -1,3 +1,5 @@
+# enviar_encuesta.py
+
 import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -7,35 +9,25 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
     """
     Envía un correo con los enlaces de encuesta (Bueno, Regular, Malo).
     Retorna un dict con 'status' y 'message', y el código de estado HTTP.
-    
-    # ----- Directrices para mejorar la nitidez de las imágenes -----
-    # 1. Usa imágenes con la resolución adecuada: 
-    #    - Si tu contenedor en el email mide 700px de ancho, 
-    #      la imagen debería tener al menos ese mismo ancho (o mayor) para evitar pixelación.
-    # 2. Mantén el formato original de alta calidad (por ej. .png o .webp) 
-    #    si reduce la compresión y se ve mejor que .jpg.
-    # 3. Ten en cuenta que Gmail u otros clientes de correo 
-    #    pueden comprimir la imagen al mostrarla, 
-    #    por lo que no siempre se verá idéntica a la versión alojada en el servidor.
-    # 4. Evita redimensionar la imagen con CSS más allá de su tamaño real, 
-    #    pues generará pérdida de calidad.
-    # 5. Usa 'max-width' en lugar de 'width' cuando quieras adaptar la imagen al contenedor 
-    #    sin que se vea forzada o pixelada.
     """
 
     # Validaciones básicas
     if not (nombre_cliente and correo_cliente and asesor and numero_consulta):
         return {'status': 'error', 'message': 'Faltan parámetros'}, 400
 
-    unique_id = numero_consulta.replace("CONS-", "")
+    # unique_id es el idcalificacion numérico, extraído de "CONS-000123"
+    unique_id = numero_consulta.replace("CONS-", "")  # por ejemplo "000123"
+
+    # Ajusta esta base_url a la ruta donde está tu endpoint /encuesta
+    # (Por ejemplo, si tu backend está en "https://mi-app.onrender.com", cámbialo).
     base_url = "https://gfxjef.pythonanywhere.com/calificacion_firma"
-    
-    # Generar enlaces
+
+    # Generar enlaces para Bueno, Regular, Malo
     link_bueno = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Bueno"
     link_regular = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Regular"
     link_malo = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Malo"
 
-    # Construir el HTML del correo (estructura con tablas para mayor compatibilidad)
+    # Construir el HTML del correo
     html_body = f"""
     <!DOCTYPE html>
     <html lang="es">
