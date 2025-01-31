@@ -77,8 +77,8 @@ def create_table_if_not_exists(cursor):
         """
         cursor.execute(add_column_query)
     except mysql.connector.Error as err:
-        # Si la columna ya existe, ignorar el error
-        if err.errno == 1060:  # Error 1060: Duplicate column name
+        # Si la columna ya existe, ignorar el error 1060 (Duplicate column name)
+        if err.errno == 1060:
             pass
         else:
             raise
@@ -132,6 +132,7 @@ def submit():
 
         # Obtener el ID insertado (idcalificacion)
         idcalificacion = cursor.lastrowid
+        # Este será tu "numero_consulta", por ejemplo "CONS-000001"
         numero_consulta = f"CONS-{idcalificacion:06d}"
 
     except mysql.connector.Error as err:
@@ -147,7 +148,7 @@ def submit():
     # ------------------------------------------------------------------
     nombre_cliente = nombres
     correo_cliente = correo
-    # Llamar a la función para enviar la encuesta
+    # Llamar a la función para enviar la encuesta, pasándole 'numero_consulta'
     encuesta_response, status_code = enviar_encuesta(
         nombre_cliente,
         correo_cliente,
@@ -184,11 +185,8 @@ def encuesta():
 
     try:
         cursor = cnx.cursor()
-        select_query = f"""
-            SELECT calificacion 
-            FROM {TABLE_NAME}
-            WHERE idcalificacion = %s
-        """
+        # Buscamos si existe el registro con idcalificacion = unique_id
+        select_query = f"SELECT calificacion FROM {TABLE_NAME} WHERE idcalificacion = %s"
         cursor.execute(select_query, (unique_id,))
         row = cursor.fetchone()
 
@@ -243,7 +241,7 @@ def guardar_observaciones():
 
     try:
         cursor = cnx.cursor()
-        # Verificar si existe el registro
+        # Verificar si existe el registro con idcalificacion = unique_id
         select_query = f"SELECT idcalificacion FROM {TABLE_NAME} WHERE idcalificacion = %s"
         cursor.execute(select_query, (unique_id,))
         row = cursor.fetchone()
