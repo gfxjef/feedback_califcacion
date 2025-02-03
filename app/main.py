@@ -342,7 +342,7 @@ def segmento_imagenes():
 
     # 2. Consumir la API
     try:
-        response = requests.get("http://209.45.52.219:8080/mkt/lista-clientes", timeout=10)
+        response = requests.get("http://209.45.52.219:8090/mkt/lista-clientes", timeout=10)
         data = response.json()
 
         ruc_db_clean = ruc_db.strip()
