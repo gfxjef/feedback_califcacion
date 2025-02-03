@@ -391,6 +391,15 @@ def segmento_imagenes():
         'image_urls': image_urls
     }), 200
 
+@app.route("/test-api")
+def test_api():
+    import requests
+    url = "http://209.45.52.219:8090/mkt/lista-clientes"
+    try:
+        response = requests.get(url, timeout=10)
+        return f"Status Code: {response.status_code}\nResponse: {response.text[:500]}"
+    except requests.exceptions.RequestException as e:
+        return f"Error: {e}", 500
 
 
 @app.route('/health')
