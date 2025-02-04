@@ -133,7 +133,7 @@ def get_db_connection():
 def create_table_if_not_exists(cursor):
     """
     Crea la tabla `envio_de_encuestas` si no existe.
-    Incluye la columna `calificacion` y, si es necesario, agrega la columna `observaciones`.
+    Incluye la columna `calificacion`, `segmento` y, si es necesario, agrega la columna `observaciones`.
     """
     create_table_query = f"""
     CREATE TABLE IF NOT EXISTS `{TABLE_NAME}` (
@@ -142,6 +142,7 @@ def create_table_if_not_exists(cursor):
         nombres VARCHAR(255) NOT NULL,
         ruc VARCHAR(50) NOT NULL,
         correo VARCHAR(255) NOT NULL,
+        segmento VARCHAR(255),
         calificacion VARCHAR(50),
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB;
@@ -185,6 +186,18 @@ def submit():
     if not ruc.isdigit() or len(ruc) != 11:
         return jsonify({'status': 'error', 'message': 'RUC inválido. Debe contener 11 dígitos.'}), 400
 
+    # 1. Consultar la API para obtener el Segmento utilizando el RUC
+    segmento = "Otros"  # Valor por defecto
+    try:
+        api_url = f"http://209.45.52.219:8090/mkt/obtener-cliente/{ruc}"
+        response_api = requests.get(api_url, timeout=10)
+        data_api = response_api.json()
+        if data_api and isinstance(data_api, list) and "Segmento" in data_api[0]:
+            segmento = data_api[0]["Segmento"]
+    except Exception as e:
+        app.logger.error(f"Error obteniendo datos del cliente desde la API: {e}")
+        # Se mantiene el valor por defecto "Otros"
+
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
@@ -193,11 +206,12 @@ def submit():
         cursor = cnx.cursor()
         create_table_if_not_exists(cursor)
 
+        # Incluir el campo 'segmento' en el insert
         insert_query = f"""
-        INSERT INTO `{TABLE_NAME}` (asesor, nombres, ruc, correo)
-        VALUES (%s, %s, %s, %s);
+        INSERT INTO `{TABLE_NAME}` (asesor, nombres, ruc, correo, segmento)
+        VALUES (%s, %s, %s, %s, %s);
         """
-        cursor.execute(insert_query, (asesor, nombres, ruc, correo))
+        cursor.execute(insert_query, (asesor, nombres, ruc, correo, segmento))
         cnx.commit()
 
         # ID insertado
@@ -224,6 +238,7 @@ def submit():
         return jsonify(encuesta_response), status_code
 
     return jsonify({'status': 'success', 'message': 'Datos guardados y encuesta enviada correctamente.'}), 200
+
 
 
 @app.route('/encuesta', methods=['GET'])
