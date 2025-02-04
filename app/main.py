@@ -417,7 +417,7 @@ def end_pointry():
     ruc = "20100119227"
     try:
         api_url = f"http://209.45.52.219:8090/mkt/obtener-cliente/{ruc}"
-        response_api = requests.get(api_url, timeout=10)
+        response_api = requests.get(api_url, timeout=100)
         data_api = response_api.json()
 
         # Validamos que la respuesta tenga la estructura esperada
