@@ -406,15 +406,36 @@ def segmento_imagenes():
         'image_urls': image_urls
     }), 200
 
-@app.route("/test-api")
-def test_api():
-    import requests
-    url = "http://209.45.52.219:8090/mkt/lista-clientes"
+
+@app.route('/test_api', methods=['GET'])
+def end_pointry():
+    """
+    Endpoint de prueba para obtener el segmento a partir de un RUC fijo.
+    Se utiliza el RUC: 20100119227.
+    """
+    # RUC fijo para la prueba
+    ruc = "20100119227"
     try:
-        response = requests.get(url, timeout=10)
-        return f"Status Code: {response.status_code}\nResponse: {response.text[:500]}"
-    except requests.exceptions.RequestException as e:
-        return f"Error: {e}", 500
+        api_url = f"http://209.45.52.219:8090/mkt/obtener-cliente/{ruc}"
+        response_api = requests.get(api_url, timeout=10)
+        data_api = response_api.json()
+
+        # Validamos que la respuesta tenga la estructura esperada
+        if data_api and isinstance(data_api, list) and "Segmento" in data_api[0]:
+            segmento = data_api[0]["Segmento"]
+        else:
+            segmento = "No encontrado"
+
+        return jsonify({
+            "ruc": ruc,
+            "segmento": segmento,
+            "raw_data": data_api
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Error en /end_pointry: {e}")
+        return jsonify({"error": str(e)}), 500
+
 
 
 @app.route('/health')
