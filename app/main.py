@@ -398,6 +398,63 @@ def segmento_imagenes():
         'image_urls': image_urls
     }), 200
 
+@app.route('/promo_click', methods=['POST'])
+def promo_click():
+    """
+    Recibe JSON con:
+      { "unique_id": "000123", "promo": "promo_mira" }
+    Busca el registro en la tabla `envio_de_encuestas` y actualiza la primera columna de promoción (promo1 a promo5) que esté vacía,
+    asignándole el valor recibido y la hora actual en su correspondiente campo time_promoX.
+    """
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({'status': 'error', 'message': 'Falta el body JSON'}), 400
+
+    unique_id = data.get('unique_id')
+    promo = data.get('promo')
+    if not unique_id or not promo:
+        return jsonify({'status': 'error', 'message': 'Faltan unique_id o promo'}), 400
+
+    cnx = get_db_connection()
+    if cnx is None:
+        return jsonify({'status': 'error', 'message': 'No se pudo conectar a la BD'}), 500
+
+    try:
+        # Consultar los campos promo1 a promo5 para saber cuál está libre
+        cursor = cnx.cursor(dictionary=True)
+        select_query = f"SELECT promo1, promo2, promo3, promo4, promo5 FROM {TABLE_NAME} WHERE idcalificacion = %s"
+        cursor.execute(select_query, (unique_id,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'status': 'error', 'message': 'No se encontró ese unique_id.'}), 404
+
+        # Buscar la primera columna promo vacía
+        promo_slot = None
+        slot_number = None
+        for i in range(1, 6):
+            if not row.get(f'promo{i}'):
+                promo_slot = f'promo{i}'
+                slot_number = i
+                break
+
+        if not promo_slot:
+            return jsonify({'status': 'error', 'message': 'Se han llenado todas las promociones.'}), 400
+
+        # Actualizar la columna encontrada y el campo time_promo correspondiente (se asume que la BD usa NOW())
+        update_query = f"UPDATE {TABLE_NAME} SET {promo_slot} = %s, time_promo{slot_number} = NOW() WHERE idcalificacion = %s"
+        cursor.execute(update_query, (promo, unique_id))
+        cnx.commit()
+
+        return jsonify({'status': 'success', 'message': f'Promoción guardada en {promo_slot}'}), 200
+
+    except mysql.connector.Error as err:
+        app.logger.error(f"Error al actualizar promo: {err}")
+        return jsonify({'status': 'error', 'message': 'Error al actualizar promoción.'}), 500
+    finally:
+        cursor.close()
+        cnx.close()
+
+
 
 @app.route('/test_api', methods=['GET'])
 def test_api():
