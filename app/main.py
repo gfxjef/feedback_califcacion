@@ -16,7 +16,6 @@ app = Flask(__name__)
 # ----------------------------------------------------------------------
 # CONFIGURACIÓN DE CORS
 # ----------------------------------------------------------------------
-# Permite solicitudes desde atusaludlicoreria.com y kossodo.estilovisual.com, etc.
 CORS(app, resources={r"/*": {"origins": [
     "https://atusaludlicoreria.com",
     "https://kossodo.estilovisual.com"
@@ -42,9 +41,7 @@ FTP_HOST = "75.102.23.104"  # server.estilovisual.com
 FTP_USER = "kossodo_kossodo.estilovisual.com"
 FTP_PASS = "kossodo2024##"
 
-# Carpeta base donde se encuentran las subcarpetas
 FTP_BASE_FOLDER = "/marketing/calificacion/categorias"
-# Versión HTTP (ruta pública) para mostrar las imágenes en <img src="...">
 HTTP_BASE_URL = "https://kossodo.estilovisual.com/marketing/calificacion/categorias"
 
 # ----------------------------------------------------------------------
@@ -157,7 +154,6 @@ def create_table_if_not_exists(cursor):
         """
         cursor.execute(add_column_query)
     except mysql.connector.Error as err:
-        # Si la columna ya existe, ignorar
         if err.errno == 1060:  # Duplicate column name
             pass
         else:
@@ -186,18 +182,26 @@ def submit():
     if not ruc.isdigit() or len(ruc) != 11:
         return jsonify({'status': 'error', 'message': 'RUC inválido. Debe contener 11 dígitos.'}), 400
 
-    # 1. Consultar la API para obtener el Segmento utilizando el RUC
+    # 1. Consultar la tabla Ruc_clientes para obtener el Segmento utilizando el RUC
     segmento = "Otros"  # Valor por defecto
-    try:
-        api_url = f"http://209.45.52.219:8090/mkt/obtener-cliente/{ruc}"
-        response_api = requests.get(api_url, timeout=10)
-        data_api = response_api.json()
-        if data_api and isinstance(data_api, list) and "Segmento" in data_api[0]:
-            segmento = data_api[0]["Segmento"]
-    except Exception as e:
-        app.logger.error(f"Error obteniendo datos del cliente desde la API: {e}")
-        # Se mantiene el valor por defecto "Otros"
+    cnx_segmento = get_db_connection()
+    if cnx_segmento is None:
+        app.logger.error("No se pudo conectar a la base de datos para obtener el segmento")
+    else:
+        try:
+            cursor_seg = cnx_segmento.cursor(dictionary=True)
+            select_query = "SELECT Segmento FROM Ruc_clientes WHERE NumeroDocumento = %s LIMIT 1"
+            cursor_seg.execute(select_query, (ruc,))
+            row = cursor_seg.fetchone()
+            if row and row.get("Segmento"):
+                segmento = row["Segmento"]
+        except Exception as e:
+            app.logger.error(f"Error obteniendo datos del cliente desde Ruc_clientes: {e}")
+        finally:
+            cursor_seg.close()
+            cnx_segmento.close()
 
+    # Insertar los datos en la tabla de encuestas
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
@@ -206,7 +210,6 @@ def submit():
         cursor = cnx.cursor()
         create_table_if_not_exists(cursor)
 
-        # Incluir el campo 'segmento' en el insert
         insert_query = f"""
         INSERT INTO `{TABLE_NAME}` (asesor, nombres, ruc, correo, segmento)
         VALUES (%s, %s, %s, %s, %s);
@@ -214,10 +217,8 @@ def submit():
         cursor.execute(insert_query, (asesor, nombres, ruc, correo, segmento))
         cnx.commit()
 
-        # ID insertado
         idcalificacion = cursor.lastrowid
         numero_consulta = f"CONS-{idcalificacion:06d}"
-
     except mysql.connector.Error as err:
         app.logger.error(f"Error al insertar los datos en la base de datos: {err}")
         return jsonify({'status': 'error', 'message': 'Error al insertar los datos en la base de datos.'}), 500
@@ -226,13 +227,11 @@ def submit():
         cnx.close()
 
     # Enviar la encuesta
-    nombre_cliente = nombres
-    correo_cliente = correo
     encuesta_response, status_code = enviar_encuesta(
-        nombre_cliente,
-        correo_cliente,
-        asesor,
-        numero_consulta
+        nombre_cliente=nombres,
+        correo_cliente=correo,
+        asesor=asesor,
+        numero_consulta=numero_consulta
     )
     if status_code != 200:
         return jsonify(encuesta_response), status_code
@@ -240,13 +239,11 @@ def submit():
     return jsonify({'status': 'success', 'message': 'Datos guardados y encuesta enviada correctamente.'}), 200
 
 
-
 @app.route('/encuesta', methods=['GET'])
 def encuesta():
     """
-    Endpoint que recibe los parámetros unique_id y calificacion
-    y actualiza la calificación en la base de datos.
-    Luego redirige a la página correspondiente.
+    Endpoint que recibe los parámetros unique_id y calificacion,
+    actualiza la calificación en la base de datos y redirige a la página correspondiente.
     """
     unique_id = request.args.get('unique_id')
     calificacion = request.args.get('calificacion')
@@ -273,10 +270,8 @@ def encuesta():
 
         calificacion_actual = row[0]
         if calificacion_actual and calificacion_actual.strip():
-            # Ya tiene calificación
             return redirect("https://atusaludlicoreria.com/kssd/firma/encuesta-ya-respondida.html")
 
-        # Actualizar calificación
         update_query = f"""
             UPDATE {TABLE_NAME}
             SET calificacion = %s
@@ -285,7 +280,6 @@ def encuesta():
         cursor.execute(update_query, (calificacion, unique_id))
         cnx.commit()
 
-        # Redirige a la pantalla de "Gracias" con ?unique_id=
         return redirect(f"https://atusaludlicoreria.com/kssd/firma/encuesta-gracias.html?unique_id={unique_id}")
 
     except mysql.connector.Error as err:
@@ -338,11 +332,16 @@ def guardar_observaciones():
 
 @app.route('/segmento_imagenes', methods=['GET'])
 def segmento_imagenes():
+    """
+    Endpoint que, a partir del unique_id, obtiene el RUC registrado en la tabla de encuestas,
+    consulta la tabla Ruc_clientes para obtener el segmento y mapea ese segmento a una carpeta FTP,
+    listando las imágenes disponibles.
+    """
     unique_id = request.args.get('unique_id')
     if not unique_id:
         return jsonify({'status': 'error', 'message': 'Falta el parámetro unique_id'}), 400
 
-    # 1. RUC desde BD
+    # 1. Obtener el RUC desde la tabla de encuestas
     cnx = get_db_connection()
     cursor = cnx.cursor()
     cursor.execute("SELECT ruc FROM envio_de_encuestas WHERE idcalificacion = %s", (unique_id,))
@@ -355,31 +354,27 @@ def segmento_imagenes():
     ruc_db = row[0]
     app.logger.info(f"(DEBUG) Para unique_id={unique_id}, RUC BD='{ruc_db}', len={len(ruc_db)}")
 
-    # 2. Consumir la API
-    try:
-        response = requests.get("http://209.45.52.219:8090/mkt/lista-clientes", timeout=10)
-        data = response.json()
-
-        ruc_db_clean = ruc_db.strip()
-        segmento_encontrado = None
-
-        for cliente in data:
-            numero_doc_api = str(cliente.get("NumeroDocumento", "")).strip()
-            # LOG
-            app.logger.info(f"(DEBUG) Comparo BD='{ruc_db_clean}' vs API='{numero_doc_api}'")
-
-            if numero_doc_api == ruc_db_clean:
-                segmento_encontrado = cliente.get("Segmento", "")
-                break
-
-        if not segmento_encontrado:
+    # 2. Consultar la tabla Ruc_clientes para obtener el Segmento
+    segmento_encontrado = "Otros"
+    cnx_seg = get_db_connection()
+    if cnx_seg is None:
+        app.logger.error("No se pudo conectar a la base de datos para obtener el segmento")
+    else:
+        try:
+            cursor_seg = cnx_seg.cursor(dictionary=True)
+            select_query = "SELECT Segmento FROM Ruc_clientes WHERE NumeroDocumento = %s LIMIT 1"
+            cursor_seg.execute(select_query, (ruc_db.strip(),))
+            row_seg = cursor_seg.fetchone()
+            if row_seg and row_seg.get("Segmento"):
+                segmento_encontrado = row_seg["Segmento"]
+        except Exception as e:
+            app.logger.error(f"Error consultando Ruc_clientes: {e}")
             segmento_encontrado = "Otros"
-    except Exception as e:
-        app.logger.error(f"Error consultando API: {e}")
-        segmento_encontrado = "Otros"
+        finally:
+            cursor_seg.close()
+            cnx_seg.close()
 
-
-    # Resto del código para mapear 'segmento_encontrado' a carpeta, listar en FTP, etc.
+    # Mapear el segmento a la carpeta FTP
     carpeta = SEGMENTO_MAPPING.get(segmento_encontrado, "Otros")
 
     image_filenames = []
@@ -394,10 +389,7 @@ def segmento_imagenes():
     except ftplib.all_errors as e:
         app.logger.error(f"Error FTP: {e}")
 
-    image_urls = [
-        f"{HTTP_BASE_URL}/{carpeta}/{filename}"
-        for filename in image_filenames
-    ]
+    image_urls = [f"{HTTP_BASE_URL}/{carpeta}/{filename}" for filename in image_filenames]
 
     return jsonify({
         'status': 'success',
@@ -408,34 +400,36 @@ def segmento_imagenes():
 
 
 @app.route('/test_api', methods=['GET'])
-def end_pointry():
+def test_api():
     """
     Endpoint de prueba para obtener el segmento a partir de un RUC fijo.
     Se utiliza el RUC: 20100119227.
+    Ahora se consulta la tabla Ruc_clientes en lugar de la API.
     """
-    # RUC fijo para la prueba
     ruc = "20100119227"
     try:
-        api_url = f"http://209.45.52.219:8090/mkt/obtener-cliente/{ruc}"
-        response_api = requests.get(api_url, timeout=100)
-        data_api = response_api.json()
-
-        # Validamos que la respuesta tenga la estructura esperada
-        if data_api and isinstance(data_api, list) and "Segmento" in data_api[0]:
-            segmento = data_api[0]["Segmento"]
+        cnx_seg = get_db_connection()
+        cursor_seg = cnx_seg.cursor(dictionary=True)
+        select_query = "SELECT Segmento, RazonSocial FROM Ruc_clientes WHERE NumeroDocumento = %s LIMIT 1"
+        cursor_seg.execute(select_query, (ruc,))
+        row = cursor_seg.fetchone()
+        if row:
+            segmento = row.get("Segmento", "No encontrado")
+            razon_social = row.get("RazonSocial", "No encontrada")
         else:
             segmento = "No encontrado"
-
+            razon_social = ""
         return jsonify({
             "ruc": ruc,
             "segmento": segmento,
-            "raw_data": data_api
+            "razon_social": razon_social
         }), 200
-
     except Exception as e:
-        app.logger.error(f"Error en /end_pointry: {e}")
+        app.logger.error(f"Error en /test_api: {e}")
         return jsonify({"error": str(e)}), 500
-
+    finally:
+        cursor_seg.close()
+        cnx_seg.close()
 
 
 @app.route('/health')
