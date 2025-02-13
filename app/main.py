@@ -247,23 +247,18 @@ def guardar_observaciones():
 @app.route('/segmento_imagenes', methods=['GET'])
 def segmento_imagenes():
     """
-    Endpoint que, a partir del unique_id, obtiene las imágenes del segmento.
-    Ahora se utiliza directamente la carpeta 'Otros' sin buscar el sector por RUC.
+    Endpoint que retorna todas las imágenes de la carpeta 'Otros' vía FTP.
     """
-    unique_id = request.args.get('unique_id')
+    unique_id = request.args.get('unique_id')  # Se podría usar o no, pero está en la URL.
     if not unique_id:
         return jsonify({'status': 'error', 'message': 'Falta el parámetro unique_id'}), 400
 
-    # Asignamos directamente el segmento y carpeta a "Otros"
-    segmento_encontrado = "Otros"
-    carpeta = "Otros"
-
+    carpeta = "Otros"  # Forzado a "Otros"
     image_filenames = []
     try:
         ftp = ftplib.FTP(FTP_HOST, FTP_USER, FTP_PASS)
         ftp.cwd(f"{FTP_BASE_FOLDER}/{carpeta}")
         files = ftp.nlst()
-
         valid_extensions = ('.jpg', '.jpeg', '.png', '.webp', '.gif')
         image_filenames = [f for f in files if f.lower().endswith(valid_extensions)]
         ftp.quit()
@@ -271,13 +266,11 @@ def segmento_imagenes():
         app.logger.error(f"Error FTP: {e}")
 
     image_urls = [f"{HTTP_BASE_URL}/{carpeta}/{filename}" for filename in image_filenames]
-
     return jsonify({
         'status': 'success',
-        'segmento': segmento_encontrado,
-        'carpeta': carpeta,
         'image_urls': image_urls
     }), 200
+
 
 @app.route('/promo_click', methods=['POST'])
 def promo_click():
