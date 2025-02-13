@@ -1,5 +1,3 @@
-# main.py
-
 import os
 import re
 import requests
@@ -44,70 +42,7 @@ FTP_PASS = "kossodo2024##"
 FTP_BASE_FOLDER = "/marketing/calificacion/categorias"
 HTTP_BASE_URL = "https://kossodo.estilovisual.com/marketing/calificacion/categorias"
 
-# ----------------------------------------------------------------------
-# MAPEO SEGMENTO -> CARPETA
-# ----------------------------------------------------------------------
-SEGMENTO_MAPPING = {
-    # Salud / Investigación
-    "Articulos Informaticos - TI": "Salud_Investigacion",
-    "Salud": "Salud_Investigacion",
-    "Investigación": "Salud_Investigacion",
-    "Farmaceutica": "Salud_Investigacion",
-    "Drogueria": "Salud_Investigacion",
-    "Laboratorio Particular": "Salud_Investigacion",
-    "Fabricante de Materiales Medicos y Odontológico": "Salud_Investigacion",
-    "Muestras Organicas": "Salud_Investigacion",
-    "Salud y Belleza": "Salud_Investigacion",
-
-    # Industria / Manufactura
-    "Imprenta": "Industria_Manufactura",
-    "Textil y Confecciones": "Industria_Manufactura",
-    "Fabricante de Equipo/Producto Eléctrico": "Industria_Manufactura",
-    "Metal Mecánicas": "Industria_Manufactura",
-    "Fabricante de Vidrio": "Industria_Manufactura",
-    "Químicas": "Industria_Manufactura",
-    "Fabricación de artículos de papel/cartón": "Industria_Manufactura",
-    "Plástico y Caucho": "Industria_Manufactura",
-
-    # Comercio / Distribución
-    "Comercio": "Comercio_Distribucion",
-    "Almacenamiento y Deposito": "Comercio_Distribucion",
-    "Revendedor": "Comercio_Distribucion",
-    "Importación": "Comercio_Distribucion",
-    "Venta de productos de primera necesidad": "Comercio_Distribucion",
-
-    # Construcción / Servicios
-    "Empresa de Limpieza y Fumigación": "Construccion_Servicios",
-    "Construcción": "Construccion_Servicios",
-    "Contratista": "Construccion_Servicios",
-    "Servicios": "Construccion_Servicios",
-
-    # Minería
-    "Mineras No Metálicas": "Mineria",
-    "Mineria": "Mineria",
-    "Energía y Aguas": "Mineria",
-    "Petroquimica": "Mineria",
-    "Hidrocarburos": "Mineria",
-
-    # Pesca / Alimentos
-    "Aguas y Bebidas": "Pesca_Alimentos",
-    "Pesca": "Pesca_Alimentos",
-    "Agropecuarias y Agroindustriales": "Pesca_Alimentos",
-    "Alimentos": "Pesca_Alimentos",
-
-    # Educación / Consultoría
-    "Educacion": "Educacion_Consultoria",
-    "Consultor": "Educacion_Consultoria",
-    "Docente": "Educacion_Consultoria",
-
-    # Otros
-    "Competencia": "Otros",
-    "Publico": "Otros",
-    "Uso propio": "Otros",
-    "Varios": "Otros",
-    "Organización No Gubernamental": "Otros"
-}
-
+# Se elimina el diccionario SEGMENTO_MAPPING ya que no se utilizará.
 
 def get_db_connection():
     """
@@ -125,7 +60,6 @@ def get_db_connection():
         else:
             app.logger.error(f"Error de conexión a la base de datos: {err}")
         return None
-
 
 def create_table_if_not_exists(cursor):
     """
@@ -159,7 +93,6 @@ def create_table_if_not_exists(cursor):
         else:
             raise
 
-
 @app.route('/submit', methods=['POST'])
 def submit():
     """
@@ -182,24 +115,8 @@ def submit():
     if not ruc.isdigit() or len(ruc) != 11:
         return jsonify({'status': 'error', 'message': 'RUC inválido. Debe contener 11 dígitos.'}), 400
 
-    # 1. Consultar la tabla Ruc_clientes para obtener el Segmento utilizando el RUC
-    segmento = "Otros"  # Valor por defecto
-    cnx_segmento = get_db_connection()
-    if cnx_segmento is None:
-        app.logger.error("No se pudo conectar a la base de datos para obtener el segmento")
-    else:
-        try:
-            cursor_seg = cnx_segmento.cursor(dictionary=True)
-            select_query = "SELECT Segmento FROM Ruc_clientes WHERE NumeroDocumento = %s LIMIT 1"
-            cursor_seg.execute(select_query, (ruc,))
-            row = cursor_seg.fetchone()
-            if row and row.get("Segmento"):
-                segmento = row["Segmento"]
-        except Exception as e:
-            app.logger.error(f"Error obteniendo datos del cliente desde Ruc_clientes: {e}")
-        finally:
-            cursor_seg.close()
-            cnx_segmento.close()
+    # Eliminamos la búsqueda por RUC para obtener el sector.
+    segmento = "Otros"
 
     # Insertar los datos en la tabla de encuestas
     cnx = get_db_connection()
@@ -237,7 +154,6 @@ def submit():
         return jsonify(encuesta_response), status_code
 
     return jsonify({'status': 'success', 'message': 'Datos guardados y encuesta enviada correctamente.'}), 200
-
 
 @app.route('/encuesta', methods=['GET'])
 def encuesta():
@@ -289,7 +205,6 @@ def encuesta():
         cursor.close()
         cnx.close()
 
-
 @app.route('/observaciones', methods=['POST'])
 def guardar_observaciones():
     """
@@ -329,53 +244,19 @@ def guardar_observaciones():
         cursor.close()
         cnx.close()
 
-
 @app.route('/segmento_imagenes', methods=['GET'])
 def segmento_imagenes():
     """
-    Endpoint que, a partir del unique_id, obtiene el RUC registrado en la tabla de encuestas,
-    consulta la tabla Ruc_clientes para obtener el segmento y mapea ese segmento a una carpeta FTP,
-    listando las imágenes disponibles.
+    Endpoint que, a partir del unique_id, obtiene las imágenes del segmento.
+    Ahora se utiliza directamente la carpeta 'Otros' sin buscar el sector por RUC.
     """
     unique_id = request.args.get('unique_id')
     if not unique_id:
         return jsonify({'status': 'error', 'message': 'Falta el parámetro unique_id'}), 400
 
-    # 1. Obtener el RUC desde la tabla de encuestas
-    cnx = get_db_connection()
-    cursor = cnx.cursor()
-    cursor.execute("SELECT ruc FROM envio_de_encuestas WHERE idcalificacion = %s", (unique_id,))
-    row = cursor.fetchone()
-    cursor.close()
-    cnx.close()
-    if not row:
-        return jsonify({'status': 'error', 'message': 'No se encontró ese unique_id.'}), 404
-
-    ruc_db = row[0]
-    app.logger.info(f"(DEBUG) Para unique_id={unique_id}, RUC BD='{ruc_db}', len={len(ruc_db)}")
-
-    # 2. Consultar la tabla Ruc_clientes para obtener el Segmento
+    # Asignamos directamente el segmento y carpeta a "Otros"
     segmento_encontrado = "Otros"
-    cnx_seg = get_db_connection()
-    if cnx_seg is None:
-        app.logger.error("No se pudo conectar a la base de datos para obtener el segmento")
-    else:
-        try:
-            cursor_seg = cnx_seg.cursor(dictionary=True)
-            select_query = "SELECT Segmento FROM Ruc_clientes WHERE NumeroDocumento = %s LIMIT 1"
-            cursor_seg.execute(select_query, (ruc_db.strip(),))
-            row_seg = cursor_seg.fetchone()
-            if row_seg and row_seg.get("Segmento"):
-                segmento_encontrado = row_seg["Segmento"]
-        except Exception as e:
-            app.logger.error(f"Error consultando Ruc_clientes: {e}")
-            segmento_encontrado = "Otros"
-        finally:
-            cursor_seg.close()
-            cnx_seg.close()
-
-    # Mapear el segmento a la carpeta FTP
-    carpeta = SEGMENTO_MAPPING.get(segmento_encontrado, "Otros")
+    carpeta = "Otros"
 
     image_filenames = []
     try:
@@ -454,47 +335,23 @@ def promo_click():
         cursor.close()
         cnx.close()
 
-
-
 @app.route('/test_api', methods=['GET'])
 def test_api():
     """
     Endpoint de prueba para obtener el segmento a partir de un RUC fijo.
-    Se utiliza el RUC: 20100119227.
-    Ahora se consulta la tabla Ruc_clientes en lugar de la API.
+    Ahora se retorna siempre 'Otros' como segmento.
     """
     ruc = "20100119227"
-    try:
-        cnx_seg = get_db_connection()
-        cursor_seg = cnx_seg.cursor(dictionary=True)
-        select_query = "SELECT Segmento, RazonSocial FROM Ruc_clientes WHERE NumeroDocumento = %s LIMIT 1"
-        cursor_seg.execute(select_query, (ruc,))
-        row = cursor_seg.fetchone()
-        if row:
-            segmento = row.get("Segmento", "No encontrado")
-            razon_social = row.get("RazonSocial", "No encontrada")
-        else:
-            segmento = "No encontrado"
-            razon_social = ""
-        return jsonify({
-            "ruc": ruc,
-            "segmento": segmento,
-            "razon_social": razon_social
-        }), 200
-    except Exception as e:
-        app.logger.error(f"Error en /test_api: {e}")
-        return jsonify({"error": str(e)}), 500
-    finally:
-        cursor_seg.close()
-        cnx_seg.close()
-
+    return jsonify({
+        "ruc": ruc,
+        "segmento": "Otros",
+        "razon_social": "Sin información"
+    }), 200
 
 @app.route('/health')
 def health_check():
     return jsonify({"status": "ok"}), 200
 
-
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
