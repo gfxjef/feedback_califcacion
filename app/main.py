@@ -186,7 +186,7 @@ def encuesta():
 
         calificacion_actual = row[0]
         if calificacion_actual and calificacion_actual.strip():
-            return redirect("https://atusaludlicoreria.com/kssd/firma/encuesta-ya-respondida.html")
+            return redirect("https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta-ya-respondida.html")
 
         update_query = f"""
             UPDATE {TABLE_NAME}
@@ -196,7 +196,7 @@ def encuesta():
         cursor.execute(update_query, (calificacion, unique_id))
         cnx.commit()
 
-        return redirect(f"https://atusaludlicoreria.com/kssd/firma/encuesta-gracias.html?unique_id={unique_id}")
+        return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta-gracias.html?unique_id={unique_id}")
 
     except mysql.connector.Error as err:
         app.logger.error(f"Error al actualizar la calificación: {err}")
