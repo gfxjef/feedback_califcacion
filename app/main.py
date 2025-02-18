@@ -271,7 +271,6 @@ def segmento_imagenes():
         'image_urls': image_urls
     }), 200
 
-
 @app.route('/promo_click', methods=['POST'])
 def promo_click():
     """
@@ -344,6 +343,28 @@ def test_api():
 @app.route('/health')
 def health_check():
     return jsonify({"status": "ok"}), 200
+
+@app.route('/records', methods=['GET'])
+def get_records():
+    """
+    Endpoint para obtener todos los registros de la tabla 'envio_de_encuestas'.
+    """
+    cnx = get_db_connection()
+    if cnx is None:
+        return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
+
+    try:
+        cursor = cnx.cursor(dictionary=True)
+        query = f"SELECT * FROM `{TABLE_NAME}`;"
+        cursor.execute(query)
+        records = cursor.fetchall()
+        return jsonify({'status': 'success', 'records': records}), 200
+    except mysql.connector.Error as err:
+        app.logger.error(f"Error al obtener registros: {err}")
+        return jsonify({'status': 'error', 'message': 'Error al obtener registros.'}), 500
+    finally:
+        cursor.close()
+        cnx.close()
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
