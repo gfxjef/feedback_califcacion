@@ -9,6 +9,9 @@ import ftplib
 
 from .enviar_encuesta import enviar_encuesta
 
+# Importar el blueprint para login desde login.py
+from .login import login_bp
+
 app = Flask(__name__)
 
 # ----------------------------------------------------------------------
@@ -42,8 +45,9 @@ FTP_PASS = "kossodo2024##"
 FTP_BASE_FOLDER = "/marketing/calificacion/categorias"
 HTTP_BASE_URL = "https://kossodo.estilovisual.com/marketing/calificacion/categorias"
 
-# Se elimina el diccionario SEGMENTO_MAPPING ya que no se utilizará.
-
+# ----------------------------------------------------------------------
+# Funciones de conexión y creación de tabla
+# ----------------------------------------------------------------------
 def get_db_connection():
     """
     Establece la conexión con la base de datos.
@@ -93,11 +97,14 @@ def create_table_if_not_exists(cursor):
         else:
             raise
 
+# ----------------------------------------------------------------------
+# Endpoints de la aplicación
+# ----------------------------------------------------------------------
 @app.route('/submit', methods=['POST'])
 def submit():
     """
-    Endpoint que recibe datos desde un formulario (asesor, nombres, ruc, correo)
-    y registra esos datos en la base de datos. Además, envía una encuesta por correo.
+    Recibe datos desde un formulario y registra esos datos en la BD.
+    Además, envía una encuesta por correo.
     """
     asesor = request.form.get('asesor')
     nombres = request.form.get('nombres')
@@ -115,10 +122,10 @@ def submit():
     if not ruc.isdigit() or len(ruc) != 11:
         return jsonify({'status': 'error', 'message': 'RUC inválido. Debe contener 11 dígitos.'}), 400
 
-    # Eliminamos la búsqueda por RUC para obtener el sector.
+    # Se asigna el segmento "Otros"
     segmento = "Otros"
 
-    # Insertar los datos en la tabla de encuestas
+    # Insertar los datos en la BD
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
@@ -158,8 +165,7 @@ def submit():
 @app.route('/encuesta', methods=['GET'])
 def encuesta():
     """
-    Endpoint que recibe los parámetros unique_id y calificacion,
-    actualiza la calificación en la base de datos y redirige a la página correspondiente.
+    Actualiza la calificación en la BD y redirige a la página correspondiente.
     """
     unique_id = request.args.get('unique_id')
     calificacion = request.args.get('calificacion')
@@ -208,8 +214,7 @@ def encuesta():
 @app.route('/observaciones', methods=['POST'])
 def guardar_observaciones():
     """
-    Recibe JSON: { "unique_id": ..., "comentario": ... }
-    y actualiza la columna 'observaciones' en el registro correspondiente.
+    Recibe JSON con { "unique_id": ..., "comentario": ... } y actualiza la columna 'observaciones'.
     """
     data = request.get_json(silent=True)
     if not data:
@@ -247,9 +252,9 @@ def guardar_observaciones():
 @app.route('/segmento_imagenes', methods=['GET'])
 def segmento_imagenes():
     """
-    Endpoint que retorna todas las imágenes de la carpeta 'Otros' vía FTP.
+    Retorna todas las imágenes de la carpeta 'Otros' vía FTP.
     """
-    unique_id = request.args.get('unique_id')  # Se podría usar o no, pero está en la URL.
+    unique_id = request.args.get('unique_id')
     if not unique_id:
         return jsonify({'status': 'error', 'message': 'Falta el parámetro unique_id'}), 400
 
@@ -274,10 +279,8 @@ def segmento_imagenes():
 @app.route('/promo_click', methods=['POST'])
 def promo_click():
     """
-    Recibe JSON con:
-      { "unique_id": "000123", "promo": "promo_mira" }
-    Busca el registro en la tabla `envio_de_encuestas` y actualiza la primera columna de promoción (promo1 a promo5) que esté vacía,
-    asignándole el valor recibido y la hora actual en su correspondiente campo time_promoX.
+    Recibe JSON con { "unique_id": "000123", "promo": "promo_mira" } y actualiza la
+    primera columna de promoción (promo1 a promo5) que esté vacía.
     """
     data = request.get_json(silent=True)
     if not data:
@@ -293,7 +296,6 @@ def promo_click():
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la BD'}), 500
 
     try:
-        # Consultar los campos promo1 a promo5 para saber cuál está libre
         cursor = cnx.cursor(dictionary=True)
         select_query = f"SELECT promo1, promo2, promo3, promo4, promo5 FROM {TABLE_NAME} WHERE idcalificacion = %s"
         cursor.execute(select_query, (unique_id,))
@@ -301,7 +303,6 @@ def promo_click():
         if not row:
             return jsonify({'status': 'error', 'message': 'No se encontró ese unique_id.'}), 404
 
-        # Buscar la primera columna promo vacía
         promo_slot = None
         slot_number = None
         for i in range(1, 6):
@@ -313,7 +314,6 @@ def promo_click():
         if not promo_slot:
             return jsonify({'status': 'error', 'message': 'Se han llenado todas las promociones.'}), 400
 
-        # Actualizar la columna encontrada y el campo time_promo correspondiente (se asume que la BD usa NOW())
         update_query = f"UPDATE {TABLE_NAME} SET {promo_slot} = %s, time_promo{slot_number} = NOW() WHERE idcalificacion = %s"
         cursor.execute(update_query, (promo, unique_id))
         cnx.commit()
@@ -331,7 +331,6 @@ def promo_click():
 def test_api():
     """
     Endpoint de prueba para obtener el segmento a partir de un RUC fijo.
-    Ahora se retorna siempre 'Otros' como segmento.
     """
     ruc = "20100119227"
     return jsonify({
@@ -347,7 +346,7 @@ def health_check():
 @app.route('/records', methods=['GET'])
 def get_records():
     """
-    Endpoint para obtener todos los registros de la tabla 'envio_de_encuestas'.
+    Obtiene todos los registros de la tabla 'envio_de_encuestas'.
     """
     cnx = get_db_connection()
     if cnx is None:
@@ -366,6 +365,14 @@ def get_records():
         cursor.close()
         cnx.close()
 
+# ----------------------------------------------------------------------
+# Registrar blueprints (incluye el de login)
+# ----------------------------------------------------------------------
+app.register_blueprint(login_bp)
+
+# ----------------------------------------------------------------------
+# Arranque de la aplicación
+# ----------------------------------------------------------------------
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
