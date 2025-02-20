@@ -182,6 +182,7 @@ def submit():
 
 
 
+
 @app.route('/encuesta', methods=['GET'])
 def encuesta():
     """
