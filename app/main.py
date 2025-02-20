@@ -77,26 +77,13 @@ def create_table_if_not_exists(cursor):
         nombres VARCHAR(255) NOT NULL,
         ruc VARCHAR(50) NOT NULL,
         correo VARCHAR(255) NOT NULL,
-        categoria VARCHAR(255),
+        categoria VARCHAR(50),
         segmento VARCHAR(255),
         calificacion VARCHAR(50),
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB;
     """
     cursor.execute(create_table_query)
-
-    # Agregar la columna categoria si no existe (en caso de que la tabla ya exista sin esta columna)
-    try:
-        add_column_categoria_query = f"""
-        ALTER TABLE `{TABLE_NAME}`
-        ADD COLUMN `categoria` VARCHAR(255) NULL AFTER `correo`;
-        """
-        cursor.execute(add_column_categoria_query)
-    except mysql.connector.Error as err:
-        if err.errno == 1060:  # Duplicate column name
-            pass
-        else:
-            raise
 
     # Agregar la columna observaciones si no existe
     try:
@@ -124,7 +111,7 @@ def submit():
     nombres = request.form.get('nombres')
     ruc = request.form.get('ruc')
     correo = request.form.get('correo')
-    categoria = request.form.get('categoria')  # Nuevo campo
+    categoria = request.form.get('categoria')  # Nuevo campo para categoría
 
     if not all([asesor, nombres, ruc, correo]):
         return jsonify({'status': 'error', 'message': 'Faltan campos por completar.'}), 400
@@ -150,10 +137,10 @@ def submit():
         create_table_if_not_exists(cursor)
 
         insert_query = f"""
-        INSERT INTO `{TABLE_NAME}` (asesor, nombres, ruc, correo, segmento, categoria)
+        INSERT INTO `{TABLE_NAME}` (asesor, nombres, ruc, correo, categoria, segmento)
         VALUES (%s, %s, %s, %s, %s, %s);
         """
-        cursor.execute(insert_query, (asesor, nombres, ruc, correo, segmento, categoria))
+        cursor.execute(insert_query, (asesor, nombres, ruc, correo, categoria, segmento))
         cnx.commit()
 
         idcalificacion = cursor.lastrowid
