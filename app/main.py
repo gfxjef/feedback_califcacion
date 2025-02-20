@@ -126,9 +126,10 @@ def submit():
     nombres = request.form.get('nombres')
     ruc = request.form.get('ruc')
     correo = request.form.get('correo')
-    tipo = request.form.get('tipo')  # Nuevo campo
+    tipo = request.form.get('tipo')  # Campo opcional
 
-    if not all([asesor, nombres, ruc, correo, tipo]):
+    # Validar que los campos requeridos tengan información
+    if not all([asesor, nombres, ruc, correo]):
         return jsonify({'status': 'error', 'message': 'Faltan campos por completar.'}), 400
 
     # Validar correo
@@ -178,6 +179,7 @@ def submit():
         return jsonify(encuesta_response), status_code
 
     return jsonify({'status': 'success', 'message': 'Datos guardados y encuesta enviada correctamente.'}), 200
+
 
 
 @app.route('/encuesta', methods=['GET'])
