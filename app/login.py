@@ -52,9 +52,9 @@ def handle_login():
 
     try:
         cursor = conn.cursor(dictionary=True)
-        # Consulta para autenticar (comparación directa de la contraseña en texto plano)
+        # Consulta para autenticar. Se seleccionan las columnas correo, nombre, cargo y grupo
         cursor.execute(
-            "SELECT id, usuario, nombre, cargo FROM usuarios WHERE usuario = %s AND pass = %s",
+            "SELECT correo, nombre, cargo, grupo FROM usuarios WHERE usuario = %s AND pass = %s",
             (usuario, password)
         )
         user = cursor.fetchone()
@@ -64,10 +64,10 @@ def handle_login():
             return jsonify({
                 'success': True,
                 'user': {
-                    'id': user['id'],
-                    'usuario': user['usuario'],
+                    'correo': user['correo'],
                     'nombre': user['nombre'],
-                    'cargo': user['cargo']
+                    'cargo': user['cargo'],
+                    'grupo': user['grupo']
                 }
             }), 200
         else:
@@ -82,3 +82,4 @@ def handle_login():
         if conn.is_connected():
             cursor.close()
             conn.close()
+
