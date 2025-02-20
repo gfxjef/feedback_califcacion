@@ -68,7 +68,7 @@ def get_db_connection():
 def create_table_if_not_exists(cursor):
     """
     Crea la tabla envio_de_encuestas si no existe.
-    Incluye la columna calificacion, segmento y, si es necesario, agrega la columna observaciones.
+    Incluye las columnas calificacion, segmento, tipo y, si es necesario, agrega la columna observaciones.
     """
     create_table_query = f"""
     CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
@@ -78,6 +78,7 @@ def create_table_if_not_exists(cursor):
         ruc VARCHAR(50) NOT NULL,
         correo VARCHAR(255) NOT NULL,
         segmento VARCHAR(255),
+        tipo VARCHAR(50),
         calificacion VARCHAR(50),
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB;
@@ -86,16 +87,31 @@ def create_table_if_not_exists(cursor):
 
     # Agregar la columna observaciones si no existe
     try:
-        add_column_query = f"""
+        add_observaciones_query = f"""
         ALTER TABLE {TABLE_NAME}
         ADD COLUMN observaciones TEXT NULL AFTER calificacion;
         """
-        cursor.execute(add_column_query)
+        cursor.execute(add_observaciones_query)
     except mysql.connector.Error as err:
         if err.errno == 1060:  # Duplicate column name
             pass
         else:
             raise
+
+    # En caso de que la tabla ya exista y no tenga la columna "tipo", se puede intentar agregarla
+    try:
+        add_tipo_query = f"""
+        ALTER TABLE {TABLE_NAME}
+        ADD COLUMN tipo VARCHAR(50) NULL AFTER segmento;
+        """
+        cursor.execute(add_tipo_query)
+    except mysql.connector.Error as err:
+        if err.errno == 1060:  # Duplicate column name
+            pass
+        else:
+            raise
+
+
 
 # ----------------------------------------------------------------------
 # Endpoints de la aplicación
@@ -110,8 +126,9 @@ def submit():
     nombres = request.form.get('nombres')
     ruc = request.form.get('ruc')
     correo = request.form.get('correo')
+    tipo = request.form.get('tipo')  # Nuevo campo
 
-    if not all([asesor, nombres, ruc, correo]):
+    if not all([asesor, nombres, ruc, correo, tipo]):
         return jsonify({'status': 'error', 'message': 'Faltan campos por completar.'}), 400
 
     # Validar correo
@@ -135,10 +152,10 @@ def submit():
         create_table_if_not_exists(cursor)
 
         insert_query = f"""
-        INSERT INTO {TABLE_NAME} (asesor, nombres, ruc, correo, segmento)
-        VALUES (%s, %s, %s, %s, %s);
+        INSERT INTO {TABLE_NAME} (asesor, nombres, ruc, correo, segmento, tipo)
+        VALUES (%s, %s, %s, %s, %s, %s);
         """
-        cursor.execute(insert_query, (asesor, nombres, ruc, correo, segmento))
+        cursor.execute(insert_query, (asesor, nombres, ruc, correo, segmento, tipo))
         cnx.commit()
 
         idcalificacion = cursor.lastrowid
@@ -161,6 +178,7 @@ def submit():
         return jsonify(encuesta_response), status_code
 
     return jsonify({'status': 'success', 'message': 'Datos guardados y encuesta enviada correctamente.'}), 200
+
 
 @app.route('/encuesta', methods=['GET'])
 def encuesta():
