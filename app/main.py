@@ -113,6 +113,7 @@ def create_table_if_not_exists(cursor):
 
 
 
+
 # ----------------------------------------------------------------------
 # Endpoints de la aplicación
 # ----------------------------------------------------------------------
@@ -126,9 +127,10 @@ def submit():
     nombres = request.form.get('nombres')
     ruc = request.form.get('ruc')
     correo = request.form.get('correo')
-    tipo = request.form.get('tipo')  # Campo opcional
+    # Campo opcional "tipo": si no se envía, se asigna cadena vacía (o se podría dejar como None)
+    tipo = request.form.get('tipo', '')
 
-    # Validar que los campos requeridos tengan información
+    # Validamos que los campos obligatorios estén presentes
     if not all([asesor, nombres, ruc, correo]):
         return jsonify({'status': 'error', 'message': 'Faltan campos por completar.'}), 400
 
