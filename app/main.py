@@ -67,17 +67,16 @@ def get_db_connection():
 
 def create_table_if_not_exists(cursor):
     """
-    Crea la tabla `envio_de_encuestas` si no existe.
-    Incluye las columnas `calificacion`, `segmento`, `categoria` y, si es necesario, agrega la columna `observaciones`.
+    Crea la tabla envio_de_encuestas si no existe.
+    Incluye la columna calificacion, segmento y, si es necesario, agrega la columna observaciones.
     """
     create_table_query = f"""
-    CREATE TABLE IF NOT EXISTS `{TABLE_NAME}` (
+    CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
         idcalificacion INT AUTO_INCREMENT PRIMARY KEY,
         asesor VARCHAR(255) NOT NULL,
         nombres VARCHAR(255) NOT NULL,
         ruc VARCHAR(50) NOT NULL,
         correo VARCHAR(255) NOT NULL,
-        categoria VARCHAR(50),
         segmento VARCHAR(255),
         calificacion VARCHAR(50),
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -88,8 +87,8 @@ def create_table_if_not_exists(cursor):
     # Agregar la columna observaciones si no existe
     try:
         add_column_query = f"""
-        ALTER TABLE `{TABLE_NAME}`
-        ADD COLUMN `observaciones` TEXT NULL AFTER `calificacion`;
+        ALTER TABLE {TABLE_NAME}
+        ADD COLUMN observaciones TEXT NULL AFTER calificacion;
         """
         cursor.execute(add_column_query)
     except mysql.connector.Error as err:
@@ -111,7 +110,6 @@ def submit():
     nombres = request.form.get('nombres')
     ruc = request.form.get('ruc')
     correo = request.form.get('correo')
-    categoria = request.form.get('categoria')  # Nuevo campo para categoría
 
     if not all([asesor, nombres, ruc, correo]):
         return jsonify({'status': 'error', 'message': 'Faltan campos por completar.'}), 400
@@ -137,10 +135,10 @@ def submit():
         create_table_if_not_exists(cursor)
 
         insert_query = f"""
-        INSERT INTO `{TABLE_NAME}` (asesor, nombres, ruc, correo, categoria, segmento)
-        VALUES (%s, %s, %s, %s, %s, %s);
+        INSERT INTO {TABLE_NAME} (asesor, nombres, ruc, correo, segmento)
+        VALUES (%s, %s, %s, %s, %s);
         """
-        cursor.execute(insert_query, (asesor, nombres, ruc, correo, categoria, segmento))
+        cursor.execute(insert_query, (asesor, nombres, ruc, correo, segmento))
         cnx.commit()
 
         idcalificacion = cursor.lastrowid
@@ -356,7 +354,7 @@ def get_records():
 
     try:
         cursor = cnx.cursor(dictionary=True)
-        query = f"SELECT * FROM `{TABLE_NAME}`;"
+        query = f"SELECT * FROM {TABLE_NAME};"
         cursor.execute(query)
         records = cursor.fetchall()
         return jsonify({'status': 'success', 'records': records}), 200
@@ -378,3 +376,4 @@ app.register_blueprint(login_bp)
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
