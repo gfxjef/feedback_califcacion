@@ -68,7 +68,7 @@ def get_db_connection():
 def create_table_if_not_exists(cursor):
     """
     Crea la tabla `envio_de_encuestas` si no existe.
-    Incluye la columna `calificacion`, `segmento` y, si es necesario, agrega la columna `observaciones`.
+    Incluye las columnas `calificacion`, `segmento`, `categoria` y, si es necesario, agrega la columna `observaciones`.
     """
     create_table_query = f"""
     CREATE TABLE IF NOT EXISTS `{TABLE_NAME}` (
@@ -77,6 +77,7 @@ def create_table_if_not_exists(cursor):
         nombres VARCHAR(255) NOT NULL,
         ruc VARCHAR(50) NOT NULL,
         correo VARCHAR(255) NOT NULL,
+        categoria VARCHAR(50),
         segmento VARCHAR(255),
         calificacion VARCHAR(50),
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -110,6 +111,7 @@ def submit():
     nombres = request.form.get('nombres')
     ruc = request.form.get('ruc')
     correo = request.form.get('correo')
+    categoria = request.form.get('categoria')  # Nuevo campo para categoría
 
     if not all([asesor, nombres, ruc, correo]):
         return jsonify({'status': 'error', 'message': 'Faltan campos por completar.'}), 400
@@ -135,10 +137,10 @@ def submit():
         create_table_if_not_exists(cursor)
 
         insert_query = f"""
-        INSERT INTO `{TABLE_NAME}` (asesor, nombres, ruc, correo, segmento)
-        VALUES (%s, %s, %s, %s, %s);
+        INSERT INTO `{TABLE_NAME}` (asesor, nombres, ruc, correo, categoria, segmento)
+        VALUES (%s, %s, %s, %s, %s, %s);
         """
-        cursor.execute(insert_query, (asesor, nombres, ruc, correo, segmento))
+        cursor.execute(insert_query, (asesor, nombres, ruc, correo, categoria, segmento))
         cnx.commit()
 
         idcalificacion = cursor.lastrowid
