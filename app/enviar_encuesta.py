@@ -3,7 +3,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
+def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta, tipo):
     """
     Envía un correo con los enlaces de encuesta (Bueno, Regular, Malo).
     Retorna un dict con 'status' y 'message', y el código de estado HTTP.
@@ -11,6 +11,14 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
     # Validaciones básicas
     if not (nombre_cliente and correo_cliente and asesor and numero_consulta):
         return {'status': 'error', 'message': 'Faltan parámetros'}, 400
+
+    # Determinar la imagen de mensaje según el campo "tipo"
+    if tipo == "Ventas (OT)":
+        image_message = "https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_OT.webp"
+    elif tipo == "Coordinador (Conformidad)":
+        image_message = "https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_CONF.webp"
+    else:
+        image_message = "https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_2.webp"
 
     # unique_id es el idcalificacion numérico, extraído de "CONS-000123"
     unique_id = numero_consulta.replace("CONS-", "")  # por ejemplo "000123"
@@ -23,7 +31,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
     link_regular = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Regular"
     link_malo = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Malo"
 
-    # Construir el HTML del correo
+    # Construir el HTML del correo, usando la imagen correspondiente
     html_body = f"""<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -57,7 +65,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
                     <!-- Texto / Imagen de mensaje -->
                     <tr>
                         <td align="center" style="padding:10px;">
-                            <img src="https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_2.webp"
+                            <img src="{image_message}"
                                  alt="Mensaje"
                                  style="display:block; border:none; width:700px; max-width:90%; height:auto;">
                         </td>
@@ -156,3 +164,4 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta):
 
     except Exception as e:
         return {'status': 'error', 'message': f'Error al enviar el correo: {str(e)}'}, 500
+
