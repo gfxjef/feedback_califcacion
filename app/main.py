@@ -175,8 +175,10 @@ def submit():
         nombre_cliente=nombres,
         correo_cliente=correo,
         asesor=asesor,
-        numero_consulta=numero_consulta
+        numero_consulta=numero_consulta,
+        tipo=tipo
     )
+
     if status_code != 200:
         return jsonify(encuesta_response), status_code
 
