@@ -1,41 +1,30 @@
+# main.py
 import os
 import re
 import requests
 import mysql.connector
-from mysql.connector import errorcode
 from flask import Flask, request, jsonify, redirect
-from flask_cors import CORS  # <--- Importante
+from flask_cors import CORS
 import ftplib
 
 from .enviar_encuesta import enviar_encuesta
 
-# Importar el blueprint para login desde login.py
+# Importar el blueprint para login
 from .login import login_bp
+# Importar el blueprint de roles_menu
 from .roles_menu import roles_menu_bp
- 
+# Importar la función de conexión desde db.py
+from .db import get_db_connection
 
 app = Flask(__name__)
 
-# ----------------------------------------------------------------------
-# CONFIGURACIÓN DE CORS
-# ----------------------------------------------------------------------
 CORS(app, resources={r"/*": {"origins": [
     "https://atusaludlicoreria.com",
     "https://kossodo.estilovisual.com"
 ]}})
 
-# ----------------------------------------------------------------------
-# CONFIGURACIÓN DE LA BASE DE DATOS
-# ----------------------------------------------------------------------
-DB_CONFIG = {
-    'user': os.environ.get('MYSQL_USER'),
-    'password': os.environ.get('MYSQL_PASSWORD'),
-    'host': os.environ.get('MYSQL_HOST'),
-    'database': os.environ.get('MYSQL_DATABASE'),
-    'port': 3306
-}
-
 TABLE_NAME = "envio_de_encuestas"
+
 
 # ----------------------------------------------------------------------
 # CONFIGURACIÓN DE FTP
@@ -393,8 +382,7 @@ def get_records():
         cnx.close()
 
 # ----------------------------------------------------------------------
-# Registrar blueprints (incluye el de login)
-# ----------------------------------------------------------------------
+# Registrar blueprints
 app.register_blueprint(login_bp)
 app.register_blueprint(roles_menu_bp)
 
