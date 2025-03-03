@@ -1,18 +1,14 @@
 # roles_menu.py
 from flask import Blueprint, request, jsonify
 from mysql.connector import Error
-# Importar la función de conexión desde db.py
+# Importar la función de conexión desde db.py (nuevo)
 from .db import get_db_connection
 
 TABLE_NAME = "roles_menu"
 roles_menu_bp = Blueprint('roles_menu_bp', __name__)
 
-
 @roles_menu_bp.route('/roles_menu', methods=['GET'])
 def get_roles_menu():
-    """
-    Consulta todos los registros de la tabla roles_menu.
-    """
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
@@ -31,22 +27,7 @@ def get_roles_menu():
 
 @roles_menu_bp.route('/roles_menu', methods=['POST'])
 def add_roles_menu():
-    """
-    Agrega un nuevo registro a la tabla roles_menu.
-    Se espera un JSON con los campos:
-      - menu1_Inventario
-      - submenu1_agregar_inventario
-      - menu2_Feedback
-      - submenu2_generador_encuestas
-      - submenu3_respuestas_comentarios
-      - menu3_Solicitud_Merchandising
-      - submenu4_nueva_solicitud
-      - submenu5_confirmados
-      - submenu6_entregados
-      - menu4_Administracion
-      - submenu7_roles
-    """
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data:
         return jsonify({'status': 'error', 'message': 'No se proporcionaron datos.'}), 400
 
@@ -95,11 +76,7 @@ def add_roles_menu():
 
 @roles_menu_bp.route('/roles_menu/<int:id>', methods=['PUT'])
 def update_roles_menu(id):
-    """
-    Modifica un registro existente en la tabla roles_menu.
-    Se espera un JSON con los campos a actualizar.
-    """
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data:
         return jsonify({'status': 'error', 'message': 'No se proporcionaron datos.'}), 400
 
@@ -152,9 +129,6 @@ def update_roles_menu(id):
 
 @roles_menu_bp.route('/roles_menu/<int:id>', methods=['DELETE'])
 def delete_roles_menu(id):
-    """
-    Elimina un registro de la tabla roles_menu dado su ID.
-    """
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
