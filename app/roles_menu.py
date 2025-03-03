@@ -1,18 +1,22 @@
 # roles_menu.py
-from flask import Blueprint, jsonify, request
-from . import get_db_connection  # Asegúrate de que la importación se ajuste a tu estructura
+from flask import Blueprint, request, jsonify
+from mysql.connector import Error
+from . import get_db_connection  # Asegúrate de que get_db_connection esté definido en tu paquete
 
-# Define el nombre de la tabla para roles_menu
+# Nombre de la tabla específico para roles_menu
 TABLE_NAME = "roles_menu"
 
 roles_menu_bp = Blueprint('roles_menu_bp', __name__)
 
-# Endpoint para consultar todos los registros de roles_menu
 @roles_menu_bp.route('/roles_menu', methods=['GET'])
 def get_roles_menu():
+    """
+    Consulta todos los registros de la tabla roles_menu.
+    """
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
+
     try:
         cursor = cnx.cursor(dictionary=True)
         query = f"SELECT * FROM `{TABLE_NAME}`;"
@@ -25,63 +29,96 @@ def get_roles_menu():
         cursor.close()
         cnx.close()
 
-# Endpoint para agregar un nuevo registro a roles_menu
 @roles_menu_bp.route('/roles_menu', methods=['POST'])
 def add_roles_menu():
+    """
+    Agrega un nuevo registro a la tabla roles_menu.
+    Se espera un JSON con los campos:
+      - menu1_Inventario
+      - submenu1_agregar_inventario
+      - menu2_Feedback
+      - submenu2_generador_encuestas
+      - submenu3_respuestas_comentarios
+      - menu3_Solicitud_Merchandising
+      - submenu4_nueva_solicitud
+      - submenu5_confirmados
+      - submenu6_entregados
+      - menu4_Administracion
+      - submenu7_roles
+    """
     data = request.get_json()
+    if not data:
+        return jsonify({'status': 'error', 'message': 'No se proporcionaron datos.'}), 400
+
+    menu1_Inventario = data.get('menu1_Inventario', '')
+    submenu1_agregar_inventario = data.get('submenu1_agregar_inventario', '')
+    menu2_Feedback = data.get('menu2_Feedback', '')
+    submenu2_generador_encuestas = data.get('submenu2_generador_encuestas', '')
+    submenu3_respuestas_comentarios = data.get('submenu3_respuestas_comentarios', '')
+    menu3_Solicitud_Merchandising = data.get('menu3_Solicitud_Merchandising', '')
+    submenu4_nueva_solicitud = data.get('submenu4_nueva_solicitud', '')
+    submenu5_confirmados = data.get('submenu5_confirmados', '')
+    submenu6_entregados = data.get('submenu6_entregados', '')
+    menu4_Administracion = data.get('menu4_Administracion', '')
+    submenu7_roles = data.get('submenu7_roles', '')
+
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
+
     try:
         cursor = cnx.cursor()
         query = f"""
             INSERT INTO `{TABLE_NAME}` 
-            (
-                menu1_Inventario,
-                submenu1_agregar_inventario,
-                menu2_Feedback,
-                submenu2_generador_encuestas,
-                submenu3_respuestas_comentarios,
-                menu3_Solicitud_Merchandising,
-                submenu4_nueva_solicitud,
-                submenu5_confirmados,
-                submenu6_entregados,
-                menu4_Administracion,
-                submenu7_roles
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            (menu1_Inventario, submenu1_agregar_inventario, menu2_Feedback, submenu2_generador_encuestas,
+             submenu3_respuestas_comentarios, menu3_Solicitud_Merchandising, submenu4_nueva_solicitud,
+             submenu5_confirmados, submenu6_entregados, menu4_Administracion, submenu7_roles)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         """
         values = (
-            data.get('menu1_Inventario'),
-            data.get('submenu1_agregar_inventario'),
-            data.get('menu2_Feedback'),
-            data.get('submenu2_generador_encuestas'),
-            data.get('submenu3_respuestas_comentarios'),
-            data.get('menu3_Solicitud_Merchandising'),
-            data.get('submenu4_nueva_solicitud'),
-            data.get('submenu5_confirmados'),
-            data.get('submenu6_entregados'),
-            data.get('menu4_Administracion'),
-            data.get('submenu7_roles'),
+            menu1_Inventario, submenu1_agregar_inventario, menu2_Feedback, submenu2_generador_encuestas,
+            submenu3_respuestas_comentarios, menu3_Solicitud_Merchandising, submenu4_nueva_solicitud,
+            submenu5_confirmados, submenu6_entregados, menu4_Administracion, submenu7_roles
         )
         cursor.execute(query, values)
         cnx.commit()
-        new_id = cursor.lastrowid
-        return jsonify({'status': 'success', 'message': 'Registro agregado', 'id': new_id}), 201
+        return jsonify({
+            'status': 'success',
+            'message': 'Registro agregado correctamente.',
+            'id': cursor.lastrowid
+        }), 201
     except Exception as err:
-        cnx.rollback()
         return jsonify({'status': 'error', 'message': str(err)}), 500
     finally:
         cursor.close()
         cnx.close()
 
-# Endpoint para editar un registro existente en roles_menu
 @roles_menu_bp.route('/roles_menu/<int:id>', methods=['PUT'])
 def update_roles_menu(id):
+    """
+    Modifica un registro existente en la tabla roles_menu.
+    Se espera un JSON con los campos a actualizar.
+    """
     data = request.get_json()
+    if not data:
+        return jsonify({'status': 'error', 'message': 'No se proporcionaron datos.'}), 400
+
+    menu1_Inventario = data.get('menu1_Inventario')
+    submenu1_agregar_inventario = data.get('submenu1_agregar_inventario')
+    menu2_Feedback = data.get('menu2_Feedback')
+    submenu2_generador_encuestas = data.get('submenu2_generador_encuestas')
+    submenu3_respuestas_comentarios = data.get('submenu3_respuestas_comentarios')
+    menu3_Solicitud_Merchandising = data.get('menu3_Solicitud_Merchandising')
+    submenu4_nueva_solicitud = data.get('submenu4_nueva_solicitud')
+    submenu5_confirmados = data.get('submenu5_confirmados')
+    submenu6_entregados = data.get('submenu6_entregados')
+    menu4_Administracion = data.get('menu4_Administracion')
+    submenu7_roles = data.get('submenu7_roles')
+
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
+
     try:
         cursor = cnx.cursor()
         query = f"""
@@ -97,46 +134,38 @@ def update_roles_menu(id):
                 submenu6_entregados = %s,
                 menu4_Administracion = %s,
                 submenu7_roles = %s
-            WHERE id = %s
+            WHERE id = %s;
         """
         values = (
-            data.get('menu1_Inventario'),
-            data.get('submenu1_agregar_inventario'),
-            data.get('menu2_Feedback'),
-            data.get('submenu2_generador_encuestas'),
-            data.get('submenu3_respuestas_comentarios'),
-            data.get('menu3_Solicitud_Merchandising'),
-            data.get('submenu4_nueva_solicitud'),
-            data.get('submenu5_confirmados'),
-            data.get('submenu6_entregados'),
-            data.get('menu4_Administracion'),
-            data.get('submenu7_roles'),
-            id
+            menu1_Inventario, submenu1_agregar_inventario, menu2_Feedback, submenu2_generador_encuestas,
+            submenu3_respuestas_comentarios, menu3_Solicitud_Merchandising, submenu4_nueva_solicitud,
+            submenu5_confirmados, submenu6_entregados, menu4_Administracion, submenu7_roles, id
         )
         cursor.execute(query, values)
         cnx.commit()
-        return jsonify({'status': 'success', 'message': 'Registro actualizado'}), 200
+        return jsonify({'status': 'success', 'message': 'Registro actualizado correctamente.'}), 200
     except Exception as err:
-        cnx.rollback()
         return jsonify({'status': 'error', 'message': str(err)}), 500
     finally:
         cursor.close()
         cnx.close()
 
-# Endpoint para eliminar un registro de roles_menu
 @roles_menu_bp.route('/roles_menu/<int:id>', methods=['DELETE'])
 def delete_roles_menu(id):
+    """
+    Elimina un registro de la tabla roles_menu dado su ID.
+    """
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
+
     try:
         cursor = cnx.cursor()
-        query = f"DELETE FROM `{TABLE_NAME}` WHERE id = %s"
+        query = f"DELETE FROM `{TABLE_NAME}` WHERE id = %s;"
         cursor.execute(query, (id,))
         cnx.commit()
-        return jsonify({'status': 'success', 'message': 'Registro eliminado'}), 200
+        return jsonify({'status': 'success', 'message': 'Registro eliminado correctamente.'}), 200
     except Exception as err:
-        cnx.rollback()
         return jsonify({'status': 'error', 'message': str(err)}), 500
     finally:
         cursor.close()
