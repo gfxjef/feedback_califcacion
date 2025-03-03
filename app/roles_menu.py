@@ -1,16 +1,18 @@
 # roles_menu.py
 from flask import Blueprint, jsonify, request
-from . import get_db_connection, TABLE_NAME  # Asegúrate de que estas importaciones sean correctas para tu estructura
+from . import get_db_connection  # Asegúrate de que la importación se ajuste a tu estructura
+
+# Define el nombre de la tabla para roles_menu
+TABLE_NAME = "roles_menu"
 
 roles_menu_bp = Blueprint('roles_menu_bp', __name__)
 
-# Endpoint para consultar todos los registros
+# Endpoint para consultar todos los registros de roles_menu
 @roles_menu_bp.route('/roles_menu', methods=['GET'])
 def get_roles_menu():
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
-
     try:
         cursor = cnx.cursor(dictionary=True)
         query = f"SELECT * FROM `{TABLE_NAME}`;"
@@ -23,14 +25,13 @@ def get_roles_menu():
         cursor.close()
         cnx.close()
 
-# Endpoint para agregar un nuevo registro
+# Endpoint para agregar un nuevo registro a roles_menu
 @roles_menu_bp.route('/roles_menu', methods=['POST'])
 def add_roles_menu():
     data = request.get_json()
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
-
     try:
         cursor = cnx.cursor()
         query = f"""
@@ -74,14 +75,13 @@ def add_roles_menu():
         cursor.close()
         cnx.close()
 
-# Endpoint para editar un registro existente
+# Endpoint para editar un registro existente en roles_menu
 @roles_menu_bp.route('/roles_menu/<int:id>', methods=['PUT'])
-def edit_roles_menu(id):
+def update_roles_menu(id):
     data = request.get_json()
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
-
     try:
         cursor = cnx.cursor()
         query = f"""
@@ -123,13 +123,12 @@ def edit_roles_menu(id):
         cursor.close()
         cnx.close()
 
-# Endpoint para eliminar un registro
+# Endpoint para eliminar un registro de roles_menu
 @roles_menu_bp.route('/roles_menu/<int:id>', methods=['DELETE'])
 def delete_roles_menu(id):
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
-
     try:
         cursor = cnx.cursor()
         query = f"DELETE FROM `{TABLE_NAME}` WHERE id = %s"
