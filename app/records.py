@@ -1,8 +1,10 @@
 # records.py
 from flask import Blueprint, jsonify
-from . import get_db_connection, TABLE_NAME  # Asegúrate de ajustar la importación según tu estructura
+from .db import get_db_connection  # Importar desde db.py
+# Ojo: TABLE_NAME podría ser "envio_de_encuestas" u otra.
 
 records_bp = Blueprint('records_bp', __name__)
+TABLE_NAME = "envio_de_encuestas"
 
 @records_bp.route('/records', methods=['GET'])
 def get_records():
