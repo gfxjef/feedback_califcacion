@@ -1,12 +1,12 @@
 # roles_menu.py
 from flask import Blueprint, request, jsonify
 from mysql.connector import Error
-from . import get_db_connection  # Asegúrate de que get_db_connection esté definido en tu paquete
+# Importar la función de conexión desde db.py
+from .db import get_db_connection
 
-# Nombre de la tabla específico para roles_menu
 TABLE_NAME = "roles_menu"
-
 roles_menu_bp = Blueprint('roles_menu_bp', __name__)
+
 
 @roles_menu_bp.route('/roles_menu', methods=['GET'])
 def get_roles_menu():
