@@ -11,6 +11,8 @@ from .enviar_encuesta import enviar_encuesta
 
 # Importar el blueprint para login desde login.py
 from .login import login_bp
+from .roles_menu import roles_menu_bp
+ 
 
 app = Flask(__name__)
 
@@ -394,6 +396,8 @@ def get_records():
 # Registrar blueprints (incluye el de login)
 # ----------------------------------------------------------------------
 app.register_blueprint(login_bp)
+app.register_blueprint(roles_menu_bp)
+
 
 # ----------------------------------------------------------------------
 # Arranque de la aplicación
