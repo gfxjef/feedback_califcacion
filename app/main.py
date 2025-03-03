@@ -3,58 +3,27 @@ import os
 import re
 import requests
 import mysql.connector
+from mysql.connector import errorcode
 from flask import Flask, request, jsonify, redirect
 from flask_cors import CORS
 import ftplib
 
-from .enviar_encuesta import enviar_encuesta
-
-# Importar el blueprint para login
-from .login import login_bp
-# Importar el blueprint de roles_menu
-from .roles_menu import roles_menu_bp
-# Importar la función de conexión desde db.py
+# Importa la función de conexión de db.py
 from .db import get_db_connection
+from .enviar_encuesta import enviar_encuesta
+from .login import login_bp
+from .roles_menu import roles_menu_bp
 
 app = Flask(__name__)
 
+# Configuración de CORS
 CORS(app, resources={r"/*": {"origins": [
     "https://atusaludlicoreria.com",
     "https://kossodo.estilovisual.com"
 ]}})
 
+# Ejemplo: una tabla que usas en varios endpoints
 TABLE_NAME = "envio_de_encuestas"
-
-
-# ----------------------------------------------------------------------
-# CONFIGURACIÓN DE FTP
-# ----------------------------------------------------------------------
-FTP_HOST = "75.102.23.104"  # server.estilovisual.com
-FTP_USER = "kossodo_kossodo.estilovisual.com"
-FTP_PASS = "kossodo2024##"
-
-FTP_BASE_FOLDER = "/marketing/calificacion/categorias"
-HTTP_BASE_URL = "https://kossodo.estilovisual.com/marketing/calificacion/categorias"
-
-# ----------------------------------------------------------------------
-# Funciones de conexión y creación de tabla
-# ----------------------------------------------------------------------
-def get_db_connection():
-    """
-    Establece la conexión con la base de datos.
-    Retorna el objeto de conexión si es exitoso o None si falla.
-    """
-    try:
-        cnx = mysql.connector.connect(**DB_CONFIG)
-        return cnx
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            app.logger.error("Error de acceso a la base de datos: Usuario o contraseña incorrectos")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            app.logger.error("La base de datos no existe")
-        else:
-            app.logger.error(f"Error de conexión a la base de datos: {err}")
-        return None
 
 def create_table_if_not_exists(cursor):
     """
@@ -97,17 +66,11 @@ def create_table_if_not_exists(cursor):
         """
         cursor.execute(add_tipo_query)
     except mysql.connector.Error as err:
-        if err.errno == 1060:  # Duplicate column name
+        if err.errno == 1060:
             pass
         else:
             raise
 
-
-
-
-# ----------------------------------------------------------------------
-# Endpoints de la aplicación
-# ----------------------------------------------------------------------
 @app.route('/submit', methods=['POST'])
 def submit():
     """
@@ -118,10 +81,9 @@ def submit():
     nombres = request.form.get('nombres')
     ruc = request.form.get('ruc')
     correo = request.form.get('correo')
-    # Campo opcional "tipo": si no se envía, se asigna cadena vacía (o se podría dejar como None)
     tipo = request.form.get('tipo', '')
 
-    # Validamos que los campos obligatorios estén presentes
+    # Validación
     if not all([asesor, nombres, ruc, correo]):
         return jsonify({'status': 'error', 'message': 'Faltan campos por completar.'}), 400
 
@@ -155,13 +117,13 @@ def submit():
         idcalificacion = cursor.lastrowid
         numero_consulta = f"CONS-{idcalificacion:06d}"
     except mysql.connector.Error as err:
-        app.logger.error(f"Error al insertar los datos en la base de datos: {err}")
+        print(f"Error al insertar los datos en la base de datos: {err}")
         return jsonify({'status': 'error', 'message': 'Error al insertar los datos en la base de datos.'}), 500
     finally:
         cursor.close()
         cnx.close()
 
-    # Enviar la encuesta
+    # Enviar la encuesta (asumiendo que enviar_encuesta funciona correctamente)
     encuesta_response, status_code = enviar_encuesta(
         nombre_cliente=nombres,
         correo_cliente=correo,
@@ -175,14 +137,8 @@ def submit():
 
     return jsonify({'status': 'success', 'message': 'Datos guardados y encuesta enviada correctamente.'}), 200
 
-
-
-
 @app.route('/encuesta', methods=['GET'])
 def encuesta():
-    """
-    Actualiza la calificación en la BD y redirige a la página correspondiente.
-    """
     unique_id = request.args.get('unique_id')
     calificacion = request.args.get('calificacion')
 
@@ -207,6 +163,7 @@ def encuesta():
             return jsonify({'status': 'error', 'message': 'No se encontró el registro con ese unique_id.'}), 404
 
         calificacion_actual = row[0]
+        # Si ya hay una calificación previa, redirige a "ya respondida"
         if calificacion_actual and calificacion_actual.strip():
             return redirect("https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta-ya-respondida.html")
 
@@ -221,7 +178,7 @@ def encuesta():
         return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta-gracias.html?unique_id={unique_id}")
 
     except mysql.connector.Error as err:
-        app.logger.error(f"Error al actualizar la calificación: {err}")
+        print(f"Error al actualizar la calificación: {err}")
         return jsonify({'status': 'error', 'message': 'Error al actualizar la calificación.'}), 500
     finally:
         cursor.close()
@@ -229,9 +186,6 @@ def encuesta():
 
 @app.route('/observaciones', methods=['POST'])
 def guardar_observaciones():
-    """
-    Recibe JSON con { "unique_id": ..., "comentario": ... } y actualiza la columna 'observaciones'.
-    """
     data = request.get_json(silent=True)
     if not data:
         return jsonify({'status': 'error', 'message': 'Falta el body JSON'}), 400
@@ -259,7 +213,7 @@ def guardar_observaciones():
 
         return jsonify({'status': 'success', 'message': 'Comentario guardado correctamente'}), 200
     except mysql.connector.Error as err:
-        app.logger.error(f"Error al actualizar observaciones: {err}")
+        print(f"Error al actualizar observaciones: {err}")
         return jsonify({'status': 'error', 'message': 'Error al actualizar observaciones'}), 500
     finally:
         cursor.close()
@@ -267,26 +221,24 @@ def guardar_observaciones():
 
 @app.route('/segmento_imagenes', methods=['GET'])
 def segmento_imagenes():
-    """
-    Retorna todas las imágenes de la carpeta 'Otros' vía FTP.
-    """
     unique_id = request.args.get('unique_id')
     if not unique_id:
         return jsonify({'status': 'error', 'message': 'Falta el parámetro unique_id'}), 400
 
-    carpeta = "Otros"  # Forzado a "Otros"
-    image_filenames = []
+    carpeta = "Otros"
     try:
-        ftp = ftplib.FTP(FTP_HOST, FTP_USER, FTP_PASS)
-        ftp.cwd(f"{FTP_BASE_FOLDER}/{carpeta}")
+        ftp = ftplib.FTP("75.102.23.104", "kossodo_kossodo.estilovisual.com", "kossodo2024##")
+        ftp.cwd(f"/marketing/calificacion/categorias/{carpeta}")
         files = ftp.nlst()
         valid_extensions = ('.jpg', '.jpeg', '.png', '.webp', '.gif')
         image_filenames = [f for f in files if f.lower().endswith(valid_extensions)]
         ftp.quit()
     except ftplib.all_errors as e:
-        app.logger.error(f"Error FTP: {e}")
+        print(f"Error FTP: {e}")
+        return jsonify({'status': 'error', 'message': 'Error al acceder vía FTP'}), 500
 
-    image_urls = [f"{HTTP_BASE_URL}/{carpeta}/{filename}" for filename in image_filenames]
+    image_urls = [f"https://kossodo.estilovisual.com/marketing/calificacion/categorias/{carpeta}/{filename}"
+                  for filename in image_filenames]
     return jsonify({
         'status': 'success',
         'image_urls': image_urls
@@ -294,10 +246,6 @@ def segmento_imagenes():
 
 @app.route('/promo_click', methods=['POST'])
 def promo_click():
-    """
-    Recibe JSON con { "unique_id": "000123", "promo": "promo_mira" } y actualiza la
-    primera columna de promoción (promo1 a promo5) que esté vacía.
-    """
     data = request.get_json(silent=True)
     if not data:
         return jsonify({'status': 'error', 'message': 'Falta el body JSON'}), 400
@@ -337,7 +285,7 @@ def promo_click():
         return jsonify({'status': 'success', 'message': f'Promoción guardada en {promo_slot}'}), 200
 
     except mysql.connector.Error as err:
-        app.logger.error(f"Error al actualizar promo: {err}")
+        print(f"Error al actualizar promo: {err}")
         return jsonify({'status': 'error', 'message': 'Error al actualizar promoción.'}), 500
     finally:
         cursor.close()
@@ -345,12 +293,8 @@ def promo_click():
 
 @app.route('/test_api', methods=['GET'])
 def test_api():
-    """
-    Endpoint de prueba para obtener el segmento a partir de un RUC fijo.
-    """
-    ruc = "20100119227"
     return jsonify({
-        "ruc": ruc,
+        "ruc": "20100119227",
         "segmento": "Otros",
         "razon_social": "Sin información"
     }), 200
@@ -361,9 +305,6 @@ def health_check():
 
 @app.route('/records', methods=['GET'])
 def get_records():
-    """
-    Obtiene todos los registros de la tabla 'envio_de_encuestas'.
-    """
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
@@ -375,22 +316,16 @@ def get_records():
         records = cursor.fetchall()
         return jsonify({'status': 'success', 'records': records}), 200
     except mysql.connector.Error as err:
-        app.logger.error(f"Error al obtener registros: {err}")
+        print(f"Error al obtener registros: {err}")
         return jsonify({'status': 'error', 'message': 'Error al obtener registros.'}), 500
     finally:
         cursor.close()
         cnx.close()
 
-# ----------------------------------------------------------------------
 # Registrar blueprints
 app.register_blueprint(login_bp)
 app.register_blueprint(roles_menu_bp)
 
-
-# ----------------------------------------------------------------------
-# Arranque de la aplicación
-# ----------------------------------------------------------------------
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
