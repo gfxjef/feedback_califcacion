@@ -147,7 +147,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta, tip
 
         msg = MIMEMultipart('alternative')
         msg['Subject'] = f"Encuesta de Satisfacción - Consulta #{numero_consulta}"
-        msg['From'] = sender_email
+        msg['From'] = "Kossodo S.A.C. <jcamacho@kossodo.com>"
         msg['To'] = correo_cliente
 
         part_html = MIMEText(html_body, 'html', 'utf-8')
