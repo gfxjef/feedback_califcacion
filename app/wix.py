@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from db import get_db_connection  # Asegúrate de que db.py está en el mismo paquete o ajusta la importación
+from .db import get_db_connection  # Asegúrate de que db.py está en el mismo paquete o ajusta la importación
 
 wix_bp = Blueprint('wix_bp', __name__)
 TABLE_NAME = "WIX"  # Nombre exacto de la tabla
