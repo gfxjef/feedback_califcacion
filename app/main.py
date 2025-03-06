@@ -20,8 +20,10 @@ app = Flask(__name__)
 # Configuración de CORS
 CORS(app, resources={r"/*": {"origins": [
     "https://atusaludlicoreria.com",
-    "https://kossodo.estilovisual.com"
+    "https://kossodo.estilovisual.com",
+    "https://www.kossodo.com"     # <-- Agregar esto
 ]}})
+
 
 # Ejemplo: una tabla que usas en varios endpoints
 TABLE_NAME = "envio_de_encuestas"
