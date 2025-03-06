@@ -13,7 +13,7 @@ from .db import get_db_connection
 from .enviar_encuesta import enviar_encuesta
 from .login import login_bp
 from .roles_menu import roles_menu_bp
-from .wix import wix_bp
+from .Mailing.wix import wix_bp
 
 app = Flask(__name__)
 
