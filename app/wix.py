@@ -44,7 +44,14 @@ def insert_record():
         return jsonify({'status': 'error', 'message': 'No se recibieron datos JSON.'}), 400
 
     # Validación de campos obligatorios
-    required_fields = ["nombre_apellido", "empresa", "telefono2", "ruc_dni", "correo", "treq_requerimiento", "observacion"]
+    required_fields = [
+      "nombre_apellido",
+      "empresa",
+      "telefono2",
+      "ruc_dni",
+      "correo",
+      "treq_requerimiento"
+    ]
     for field in required_fields:
         if field not in data:
             return jsonify({'status': 'error', 'message': f'Falta el campo {field}.'}), 400
@@ -56,18 +63,17 @@ def insert_record():
     try:
         cursor = cnx.cursor()
         insert_query = f"""
-            INSERT INTO `{TABLE_NAME}` 
-            (nombre_apellido, empresa, telefono2, ruc_dni, correo, treq_requerimiento, observacion)
-            VALUES (%s, %s, %s, %s, %s, %s, %s);
+          INSERT INTO `{TABLE_NAME}` 
+          (nombre_apellido, empresa, telefono2, ruc_dni, correo, treq_requerimiento)
+          VALUES (%s, %s, %s, %s, %s, %s);
         """
         values = (
-            data["nombre_apellido"],
-            data["empresa"],
-            data["telefono2"],
-            data["ruc_dni"],
-            data["correo"],
-            data["treq_requerimiento"],
-            data["observacion"]
+          data["nombre_apellido"],
+          data["empresa"],
+          data["telefono2"],
+          data["ruc_dni"],
+          data["correo"],
+          data["treq_requerimiento"]
         )
         cursor.execute(insert_query, values)
         cnx.commit()
