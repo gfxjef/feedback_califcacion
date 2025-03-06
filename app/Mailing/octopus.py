@@ -1,26 +1,29 @@
 import os
 import requests
 
-# Lee las variables de entorno (asegúrate de configurarlas en tu entorno de despliegue)
+# Lee las variables de entorno
 OCTOPUS_API_KEY = os.environ.get("OCTOPUS_API_KEY")
 OCTOPUS_LIST_ID = os.environ.get("OCTOPUS_LIST_ID")
-OCTOPUS_BASE_URL = "https://emailoctopus.com/api/2.0"
+BASE_URL = "https://api.emailoctopus.com"  # URL base correcta
 
 def add_contact_to_octopus(email, full_name):
     """
     Agrega un contacto a la lista de EmailOctopus usando la API v2.
     Usa `full_name` para el primer nombre y deja vacío el apellido.
     """
-    url = f"{OCTOPUS_BASE_URL}/lists/{OCTOPUS_LIST_ID}/contacts"
+    url = f"{BASE_URL}/lists/{OCTOPUS_LIST_ID}/contacts"
     headers = {
         "Content-Type": "application/json",
-        "X-EmailOctopus-ApiKey": OCTOPUS_API_KEY
+        "Authorization": f"Bearer {OCTOPUS_API_KEY}"
     }
     payload = {
         "email_address": email,
-        "first_name": full_name,
-        "last_name": "",
-        "consents_to_track": True
+        "fields": {
+            "first_name": full_name,
+            "last_name": ""
+        },
+        "tags": [],
+        "status": "subscribed"
     }
-    response = requests.post(url, json=payload, headers=headers)
+    response = requests.post(url, headers=headers, json=payload)
     return response
