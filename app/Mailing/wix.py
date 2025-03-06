@@ -39,6 +39,7 @@ def insert_record():
       - ruc_dni
       - correo
       - treq_requerimiento
+    Luego, se envía el contacto a EmailOctopus.
     """
     data = request.get_json()
     if not data:
@@ -78,9 +79,23 @@ def insert_record():
         )
         cursor.execute(insert_query, values)
         cnx.commit()
+
+        # Llamamos a la función para enviar el contacto a EmailOctopus
+        # Aquí usamos el campo "correo" para el email y "nombre_apellido" para el nombre.
+        oct_response = add_contact_to_octopus(
+            email_address=data["correo"],
+            nombre_apellido=data["nombre_apellido"],
+            empresa=data["empresa"],
+            ruc_dni=data["ruc_dni"]
+        )
+        # Puedes loguear la respuesta o manejar errores según lo necesites
+        if oct_response.status_code not in [200, 201]:
+            print("Error al agregar el contacto a Octopus:", oct_response.text)
+
         return jsonify({'status': 'success', 'message': 'Registro insertado correctamente.'}), 201
     except Exception as err:
         return jsonify({'status': 'error', 'message': str(err)}), 500
     finally:
         cursor.close()
         cnx.close()
+
