@@ -1,23 +1,22 @@
 import os
 import requests
 
-# Lee las variables de entorno (asegúrate de configurarlas en producción)
+# Lee las variables de entorno
 OCTOPUS_API_KEY = os.environ.get("OCTOPUS_API_KEY")
 OCTOPUS_LIST_ID = os.environ.get("OCTOPUS_LIST_ID")
 BASE_URL = "https://api.emailoctopus.com"  # URL base correcta
 
-def add_contact_to_octopus(data):
+def add_contact_to_octopus(email_address, first_name, last_name, empresa, ruc_dni):
     """
     Agrega un contacto a la lista de EmailOctopus usando la API v2.
-    
-    Se espera que 'data' sea un diccionario con los siguientes campos:
-      - "correo": Email address del contacto.
-      - "nombre_apellido": Nombre completo, se mapea a "First name".
-      - "empresa": Se mapea a "COMPANY".
-      - "telefono2": Se mapea a "Phone".
-      - "ruc_dni": Se mapea a "RUC".
-      - "treq_requerimiento": Se mapea a "Requerimiento".
-    
+
+    Parámetros:
+      - email_address (str): Correo electrónico del contacto.
+      - first_name (str): Nombre (se asigna al campo "FirstName").
+      - last_name (str): Apellido (se asigna al campo "LastName").
+      - empresa (str): Nombre de la empresa (se asigna al campo "COMPANY").
+      - ruc_dni (str): RUC o DNI (se asigna al campo "RUC").
+
     Retorna el objeto response de la petición.
     """
     url = f"{BASE_URL}/lists/{OCTOPUS_LIST_ID}/contacts"
@@ -26,13 +25,12 @@ def add_contact_to_octopus(data):
         "Authorization": f"Bearer {OCTOPUS_API_KEY}"
     }
     payload = {
-        "email_address": data["correo"],
+        "email_address": email_address,
         "fields": {
-            "First name": data["nombre_apellido"],
-            "COMPANY": data["empresa"],
-            "RUC": data["ruc_dni"],
-            "Phone": data["telefono2"],
-            "Requerimiento": data["treq_requerimiento"]
+            "FirstName": first_name,
+            "LastName": last_name,
+            "COMPANY": empresa,
+            "RUC": ruc_dni
         },
         "tags": [],
         "status": "subscribed"
