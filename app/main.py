@@ -13,6 +13,7 @@ from .db import get_db_connection
 from .enviar_encuesta import enviar_encuesta
 from .login import login_bp
 from .roles_menu import roles_menu_bp
+from wix import wix_bp
 
 app = Flask(__name__)
 
@@ -325,6 +326,8 @@ def get_records():
 # Registrar blueprints
 app.register_blueprint(login_bp)
 app.register_blueprint(roles_menu_bp)
+app.register_blueprint(wix_bp, url_prefix='/wix')
+
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
