@@ -1,13 +1,14 @@
 from flask import Blueprint, request, jsonify
-from .db import get_db_connection  # Asegúrate de que db.py está en el mismo paquete o ajusta la importación
+from .db import get_db_connection  # Ajusta si db.py está en el mismo paquete
 
 wix_bp = Blueprint('wix_bp', __name__)
-TABLE_NAME = "WIX"  # Nombre exacto de la tabla
+TABLE_NAME = "WIX"  # Nombre exacto de la tabla en tu BD
 
 @wix_bp.route('/records', methods=['GET'])
 def get_records():
     """
-    Endpoint para obtener todos los registros de la tabla WIX.
+    GET /wix/records
+    Devuelve todos los registros de la tabla WIX.
     """
     cnx = get_db_connection()
     if cnx is None:
@@ -28,29 +29,28 @@ def get_records():
 @wix_bp.route('/records', methods=['POST'])
 def insert_record():
     """
-    Endpoint para insertar un nuevo registro en la tabla WIX.
-    Se espera recibir un JSON con los siguientes campos:
+    POST /wix/records
+    Inserta un nuevo registro en la tabla WIX.
+    Espera un JSON con:
       - nombre_apellido
       - empresa
       - telefono2
       - ruc_dni
       - correo
       - treq_requerimiento
-      - observacion
-    La columna id y submission_time se generan automáticamente.
     """
     data = request.get_json()
     if not data:
         return jsonify({'status': 'error', 'message': 'No se recibieron datos JSON.'}), 400
 
-    # Validación de campos obligatorios
+    # Campos obligatorios
     required_fields = [
-      "nombre_apellido",
-      "empresa",
-      "telefono2",
-      "ruc_dni",
-      "correo",
-      "treq_requerimiento"
+        "nombre_apellido",
+        "empresa",
+        "telefono2",
+        "ruc_dni",
+        "correo",
+        "treq_requerimiento"
     ]
     for field in required_fields:
         if field not in data:
@@ -63,17 +63,17 @@ def insert_record():
     try:
         cursor = cnx.cursor()
         insert_query = f"""
-          INSERT INTO `{TABLE_NAME}` 
-          (nombre_apellido, empresa, telefono2, ruc_dni, correo, treq_requerimiento)
-          VALUES (%s, %s, %s, %s, %s, %s);
+            INSERT INTO `{TABLE_NAME}` 
+            (nombre_apellido, empresa, telefono2, ruc_dni, correo, treq_requerimiento)
+            VALUES (%s, %s, %s, %s, %s, %s);
         """
         values = (
-          data["nombre_apellido"],
-          data["empresa"],
-          data["telefono2"],
-          data["ruc_dni"],
-          data["correo"],
-          data["treq_requerimiento"]
+            data["nombre_apellido"],
+            data["empresa"],
+            data["telefono2"],
+            data["ruc_dni"],
+            data["correo"],
+            data["treq_requerimiento"]
         )
         cursor.execute(insert_query, values)
         cnx.commit()
