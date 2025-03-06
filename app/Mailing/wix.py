@@ -40,6 +40,8 @@ def insert_record():
       - correo
       - treq_requerimiento
     Luego, se envía el contacto a EmailOctopus.
+    
+    La columna submission_time se asigna automáticamente con el timestamp actual.
     """
     data = request.get_json()
     if not data:
@@ -64,10 +66,11 @@ def insert_record():
 
     try:
         cursor = cnx.cursor()
+        # Se agrega NOW() para que submission_time reciba la fecha y hora exacta
         insert_query = f"""
             INSERT INTO `{TABLE_NAME}` 
-            (nombre_apellido, empresa, telefono2, ruc_dni, correo, treq_requerimiento)
-            VALUES (%s, %s, %s, %s, %s, %s);
+            (nombre_apellido, empresa, telefono2, ruc_dni, correo, treq_requerimiento, submission_time)
+            VALUES (%s, %s, %s, %s, %s, %s, NOW());
         """
         values = (
             data["nombre_apellido"],
@@ -80,15 +83,13 @@ def insert_record():
         cursor.execute(insert_query, values)
         cnx.commit()
 
-        # Llamamos a la función para enviar el contacto a EmailOctopus
-        # Aquí usamos el campo "correo" para el email y "nombre_apellido" para el nombre.
+        # Llamada a la función para enviar el contacto a EmailOctopus
         oct_response = add_contact_to_octopus(
             email_address=data["correo"],
             nombre_apellido=data["nombre_apellido"],
             empresa=data["empresa"],
             ruc_dni=data["ruc_dni"]
         )
-        # Puedes loguear la respuesta o manejar errores según lo necesites
         if oct_response.status_code not in [200, 201]:
             print("Error al agregar el contacto a Octopus:", oct_response.text)
 
@@ -98,4 +99,3 @@ def insert_record():
     finally:
         cursor.close()
         cnx.close()
-
