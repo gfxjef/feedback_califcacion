@@ -1,18 +1,13 @@
-# wix.py
 from flask import Blueprint, request, jsonify
-from .db import get_db_connection  # Importamos la función de conexión
+from db import get_db_connection  # Asegúrate de que db.py está en el mismo paquete o ajusta la importación
 
-# Crea el Blueprint (puedes llamarlo como quieras)
 wix_bp = Blueprint('wix_bp', __name__)
-
-# Ajusta según el nombre real de tu tabla
-TABLE_NAME = "envio_de_encuestas"  # Ejemplo. O "WIX" si así se llama tu tabla.
+TABLE_NAME = "WIX"  # Nombre exacto de la tabla
 
 @wix_bp.route('/records', methods=['GET'])
 def get_records():
     """
-    Endpoint para obtener todos los registros de la tabla.
-    GET /records
+    Endpoint para obtener todos los registros de la tabla WIX.
     """
     cnx = get_db_connection()
     if cnx is None:
@@ -30,50 +25,53 @@ def get_records():
         cursor.close()
         cnx.close()
 
-
 @wix_bp.route('/records', methods=['POST'])
 def insert_record():
     """
-    Endpoint para insertar un nuevo registro en la tabla.
-    POST /records
-    Se espera un JSON en el body con campos como:
-      {
-        "nombre_apellido": "...",
-        "empresa": "...",
-        "telefono2": "...",
-        "ruc_dni": "...",
-        "correo": "...",
-        "treq_requerimiento": "...",
-        "observacion": "..."
-      }
+    Endpoint para insertar un nuevo registro en la tabla WIX.
+    Se espera recibir un JSON con los siguientes campos:
+      - nombre_apellido
+      - empresa
+      - telefono2
+      - ruc_dni
+      - correo
+      - treq_requerimiento
+      - observacion
+    La columna id y submission_time se generan automáticamente.
     """
+    data = request.get_json()
+    if not data:
+        return jsonify({'status': 'error', 'message': 'No se recibieron datos JSON.'}), 400
+
+    # Validación de campos obligatorios
+    required_fields = ["nombre_apellido", "empresa", "telefono2", "ruc_dni", "correo", "treq_requerimiento", "observacion"]
+    for field in required_fields:
+        if field not in data:
+            return jsonify({'status': 'error', 'message': f'Falta el campo {field}.'}), 400
+
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
 
-    data = request.get_json()  # Obtenemos el body JSON enviado
-    if not data:
-        return jsonify({'status': 'error', 'message': 'No se recibieron datos JSON'}), 400
-
     try:
-        cursor = cnx.cursor(dictionary=True)
-        query = f"""
-            INSERT INTO `{TABLE_NAME}`
+        cursor = cnx.cursor()
+        insert_query = f"""
+            INSERT INTO `{TABLE_NAME}` 
             (nombre_apellido, empresa, telefono2, ruc_dni, correo, treq_requerimiento, observacion)
             VALUES (%s, %s, %s, %s, %s, %s, %s);
         """
         values = (
-            data.get('nombre_apellido'),
-            data.get('empresa'),
-            data.get('telefono2'),
-            data.get('ruc_dni'),
-            data.get('correo'),
-            data.get('treq_requerimiento'),
-            data.get('observacion')
+            data["nombre_apellido"],
+            data["empresa"],
+            data["telefono2"],
+            data["ruc_dni"],
+            data["correo"],
+            data["treq_requerimiento"],
+            data["observacion"]
         )
-        cursor.execute(query, values)
+        cursor.execute(insert_query, values)
         cnx.commit()
-        return jsonify({'status': 'success', 'message': 'Registro insertado exitosamente'}), 201
+        return jsonify({'status': 'success', 'message': 'Registro insertado correctamente.'}), 201
     except Exception as err:
         return jsonify({'status': 'error', 'message': str(err)}), 500
     finally:
