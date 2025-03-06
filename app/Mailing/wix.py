@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from ..db import get_db_connection  # Ajusta si db.py está en el mismo paquete
+from .octopus import add_contact_to_octopus
 
 wix_bp = Blueprint('wix_bp', __name__)
 TABLE_NAME = "WIX"  # Nombre exacto de la tabla en tu BD
