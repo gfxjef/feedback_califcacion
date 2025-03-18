@@ -31,7 +31,7 @@ TABLE_NAME = "envio_de_encuestas"
 def create_table_if_not_exists(cursor):
     """
     Crea la tabla envio_de_encuestas si no existe.
-    Incluye las columnas calificacion, segmento, tipo y, si es necesario, agrega la columna observaciones.
+    Incluye las columnas calificacion, segmento, tipo y, si es necesario, agrega la columna observaciones y documento.
     """
     create_table_query = f"""
     CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
@@ -40,6 +40,7 @@ def create_table_if_not_exists(cursor):
         nombres VARCHAR(255) NOT NULL,
         ruc VARCHAR(50) NOT NULL,
         correo VARCHAR(255) NOT NULL,
+        documento VARCHAR(255) NULL,
         segmento VARCHAR(255),
         tipo VARCHAR(50),
         calificacion VARCHAR(50),
@@ -61,6 +62,19 @@ def create_table_if_not_exists(cursor):
         else:
             raise
 
+    # Agregar la columna documento si no existe (opcional, en caso de que la tabla ya exista)
+    try:
+        add_documento_query = f"""
+        ALTER TABLE {TABLE_NAME}
+        ADD COLUMN documento VARCHAR(255) NULL AFTER correo;
+        """
+        cursor.execute(add_documento_query)
+    except mysql.connector.Error as err:
+        if err.errno == 1060:
+            pass
+        else:
+            raise
+
     # En caso de que la tabla ya exista y no tenga la columna "tipo", se puede intentar agregarla
     try:
         add_tipo_query = f"""
@@ -74,6 +88,7 @@ def create_table_if_not_exists(cursor):
         else:
             raise
 
+
 @app.route('/submit', methods=['POST'])
 def submit():
     """
@@ -85,6 +100,7 @@ def submit():
     ruc = request.form.get('ruc')
     correo = request.form.get('correo')
     tipo = request.form.get('tipo', '')
+    documento = request.form.get('documento')  # Campo opcional
 
     # Validación
     if not all([asesor, nombres, ruc, correo]):
@@ -111,10 +127,10 @@ def submit():
         create_table_if_not_exists(cursor)
 
         insert_query = f"""
-        INSERT INTO {TABLE_NAME} (asesor, nombres, ruc, correo, segmento, tipo)
-        VALUES (%s, %s, %s, %s, %s, %s);
+        INSERT INTO {TABLE_NAME} (asesor, nombres, ruc, correo, documento, segmento, tipo)
+        VALUES (%s, %s, %s, %s, %s, %s, %s);
         """
-        cursor.execute(insert_query, (asesor, nombres, ruc, correo, segmento, tipo))
+        cursor.execute(insert_query, (asesor, nombres, ruc, correo, documento, segmento, tipo))
         cnx.commit()
 
         idcalificacion = cursor.lastrowid
@@ -139,6 +155,7 @@ def submit():
         return jsonify(encuesta_response), status_code
 
     return jsonify({'status': 'success', 'message': 'Datos guardados y encuesta enviada correctamente.'}), 200
+
 
 @app.route('/encuesta', methods=['GET'])
 def encuesta():
