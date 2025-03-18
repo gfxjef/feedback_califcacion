@@ -1,4 +1,3 @@
-# main.py
 import os
 import re
 import requests
@@ -21,9 +20,8 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": [
     "https://atusaludlicoreria.com",
     "https://kossodo.estilovisual.com",
-    "https://www.kossodo.com"     # <-- Agregar esto
+    "https://www.kossodo.com"
 ]}})
-
 
 # Ejemplo: una tabla que usas en varios endpoints
 TABLE_NAME = "envio_de_encuestas"
@@ -31,7 +29,7 @@ TABLE_NAME = "envio_de_encuestas"
 def create_table_if_not_exists(cursor):
     """
     Crea la tabla envio_de_encuestas si no existe.
-    Incluye las columnas calificacion, segmento, tipo y, si es necesario, agrega la columna observaciones y documento.
+    Incluye las columnas calificacion, segmento, tipo y, si es necesario, agrega las columnas observaciones y documento.
     """
     create_table_query = f"""
     CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
@@ -75,7 +73,7 @@ def create_table_if_not_exists(cursor):
         else:
             raise
 
-    # En caso de que la tabla ya exista y no tenga la columna "tipo", se puede intentar agregarla
+    # Agregar la columna tipo si no existe
     try:
         add_tipo_query = f"""
         ALTER TABLE {TABLE_NAME}
@@ -88,29 +86,32 @@ def create_table_if_not_exists(cursor):
         else:
             raise
 
-
 @app.route('/submit', methods=['POST'])
 def submit():
     """
-    Recibe datos desde un formulario y registra esos datos en la BD.
+    Recibe datos desde un JSON y registra esos datos en la BD.
     Además, envía una encuesta por correo.
     """
-    asesor = request.form.get('asesor')
-    nombres = request.form.get('nombres')
-    ruc = request.form.get('ruc')
-    correo = request.form.get('correo')
-    tipo = request.form.get('tipo', '')
-    documento = request.form.get('documento')  # Campo opcional
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({'status': 'error', 'message': 'Falta el body JSON'}), 400
 
-    # Validación
+    asesor = data.get('asesor')
+    nombres = data.get('nombres')
+    ruc = data.get('ruc')
+    correo = data.get('correo')
+    tipo = data.get('tipo', '')
+    documento = data.get('documento') or None  # Campo opcional; si llega vacío se asigna None
+
+    # Validación de campos requeridos
     if not all([asesor, nombres, ruc, correo]):
         return jsonify({'status': 'error', 'message': 'Faltan campos por completar.'}), 400
 
-    # Validar correo
+    # Validar formato del correo
     if not re.match(r"[^@]+@[^@]+\.[^@]+", correo):
         return jsonify({'status': 'error', 'message': 'Correo electrónico inválido.'}), 400
 
-    # Validar RUC => 11 dígitos
+    # Validar RUC (debe ser numérico y tener 11 dígitos)
     if not ruc.isdigit() or len(ruc) != 11:
         return jsonify({'status': 'error', 'message': 'RUC inválido. Debe contener 11 dígitos.'}), 400
 
@@ -142,7 +143,7 @@ def submit():
         cursor.close()
         cnx.close()
 
-    # Enviar la encuesta (asumiendo que enviar_encuesta funciona correctamente)
+    # Enviar la encuesta (se asume que enviar_encuesta funciona correctamente)
     encuesta_response, status_code = enviar_encuesta(
         nombre_cliente=nombres,
         correo_cliente=correo,
@@ -156,6 +157,7 @@ def submit():
 
     return jsonify({'status': 'success', 'message': 'Datos guardados y encuesta enviada correctamente.'}), 200
 
+# El resto de endpoints se mantiene igual...
 
 @app.route('/encuesta', methods=['GET'])
 def encuesta():
@@ -346,7 +348,6 @@ def get_records():
 app.register_blueprint(login_bp)
 app.register_blueprint(roles_menu_bp)
 app.register_blueprint(wix_bp, url_prefix='/wix')
-
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
