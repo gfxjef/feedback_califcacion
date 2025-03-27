@@ -9,8 +9,7 @@ import ftplib
 
 # Importa la función de conexión de db.py
 from .db import get_db_connection
-# La siguiente importación ya no se utiliza, ya que no se envían encuestas:
-# from .enviar_encuesta import enviar_encuesta
+from .enviar_encuesta import enviar_encuesta
 from .login import login_bp
 from .roles_menu import roles_menu_bp
 from .Mailing.wix import wix_bp
@@ -91,7 +90,7 @@ def create_table_if_not_exists(cursor):
 def submit():
     """
     Recibe datos desde un JSON y registra esos datos en la BD.
-    En lugar de enviar la encuesta por correo, solo se registran los datos.
+    Además, envía una encuesta por correo.
     """
     data = request.get_json(silent=True)
     if not data:
@@ -144,12 +143,22 @@ def submit():
         cursor.close()
         cnx.close()
 
-    # En lugar de enviar la encuesta, solo registramos los datos y retornamos éxito
-    return jsonify({
-        'status': 'success',
-        'message': 'Datos guardados correctamente.',
-        'numero_consulta': numero_consulta
-    }), 200
+    # Enviar la encuesta (la función enviar_encuesta ya realiza la validación y el envío múltiple si es necesario)
+    encuesta_response, status_code = enviar_encuesta(
+        nombre_cliente=nombres,
+        correo_cliente=correo,
+        asesor=asesor,
+        numero_consulta=numero_consulta,
+        tipo=tipo
+    )
+
+    if status_code != 200:
+        return jsonify(encuesta_response), status_code
+
+    return jsonify({'status': 'success', 'message': 'Datos guardados y encuesta enviada correctamente.'}), 200
+
+
+# El resto de endpoints se mantiene igual...
 
 @app.route('/encuesta', methods=['GET'])
 def encuesta():
