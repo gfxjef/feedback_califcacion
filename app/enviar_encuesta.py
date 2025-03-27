@@ -12,6 +12,18 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta, tip
     if not (nombre_cliente and correo_cliente and asesor and numero_consulta):
         return {'status': 'error', 'message': 'Faltan parámetros'}, 400
 
+    # --- NUEVA SECCIÓN: Procesar correos y validación de dominios internos ---
+    # Separa los correos (en caso de que vengan múltiples, separados por comas)
+    email_list = [email.strip() for email in correo_cliente.split(',') if email.strip()]
+
+    # Si alguno de los correos es de dominio interno, no se envía el correo
+    forbidden_domains = ["@kossodo.com", "@kossomet.com", "@universocientifico.com"]
+    for email in email_list:
+        for domain in forbidden_domains:
+            if email.lower().endswith(domain):
+                return {'status': 'ok', 'message': 'No se envió correo para correos internos'}, 200
+    # -------------------------------------------------------------------------
+
     # Determinar la imagen de mensaje según el campo "tipo"
     if tipo == "Ventas (OT)":
         image_message = "https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_OT.webp"
@@ -148,20 +160,19 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta, tip
         msg = MIMEMultipart('alternative')
         msg['Subject'] = f"Encuesta de Satisfacción - Consulta #{numero_consulta}"
         msg['From'] = "Kossodo S.A.C. <jcamacho@kossodo.com>"
-        msg['To'] = correo_cliente
+        msg['To'] = ", ".join(email_list)
 
         part_html = MIMEText(html_body, 'html', 'utf-8')
         msg.attach(part_html)
 
-        # Enviar correo
+        # Enviar correo a la lista de correos
         server = smtplib.SMTP(smtp_server, smtp_port)
         server.starttls()
         server.login(sender_email, sender_password)
-        server.sendmail(sender_email, correo_cliente, msg.as_string())
+        server.sendmail(sender_email, email_list, msg.as_string())
         server.quit()
 
         return {'status': 'ok', 'message': 'Encuesta enviada correctamente'}, 200
 
     except Exception as e:
         return {'status': 'error', 'message': f'Error al enviar el correo: {str(e)}'}, 500
-
