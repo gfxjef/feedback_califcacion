@@ -15,6 +15,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta, tip
     # --- NUEVA SECCIÓN: Procesar correos y validación de dominios internos ---
     email_list = [email.strip() for email in correo_cliente.split(',') if email.strip()]
 
+    # Si alguno de los correos es de dominio interno, no se envía el correo
     forbidden_domains = ["@kossodo.com", "@kossomet.com", "@universocientifico.com"]
     for email in email_list:
         for domain in forbidden_domains:
@@ -28,20 +29,25 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta, tip
     elif tipo == "Coordinador (Conformidad)":
         image_message = "https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_CONF.webp"
     elif tipo == "Ventas (OC)":
-        image_message = "https://example.com/mail_calif_ventas_oc.webp"  # Link de ejemplo para Ventas (OC)
+        # Enlaces de ejemplo (puedes ajustarlos)
+        image_message = "https://example.com/mail_calif_ventas_oc.webp"
     elif tipo == "Entregado":
-        image_message = "https://example.com/mail_calif_entregado.webp"  # Link de ejemplo para Entregado
+        image_message = "https://example.com/mail_calif_entregado.webp"
     else:
         image_message = "https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_2.webp"
 
+    # Extraer el unique_id desde el número de consulta (ej: "CONS-000123")
     unique_id = numero_consulta.replace("CONS-", "")
 
+    # URL base donde se ubica el endpoint /encuesta
     base_url = "https://feedback-califcacion.onrender.com"
 
+    # Generar enlaces para Bueno, Regular, Malo
     link_bueno = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Bueno"
     link_regular = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Regular"
     link_malo = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Malo"
 
+    # Construir el HTML del correo
     html_body = f"""<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -149,10 +155,11 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta, tip
 </html>"""
 
     try:
+        # Configuración SMTP
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
-        sender_email = os.environ.get('EMAIL_USER')
-        sender_password = os.environ.get('EMAIL_PASSWORD')
+        sender_email = os.environ.get('EMAIL_USER')      # Usuario SMTP
+        sender_password = os.environ.get('EMAIL_PASSWORD')  # Contraseña SMTP
 
         msg = MIMEMultipart('alternative')
         msg['Subject'] = f"Encuesta de Satisfacción - Consulta #{numero_consulta}"
@@ -162,6 +169,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta, tip
         part_html = MIMEText(html_body, 'html', 'utf-8')
         msg.attach(part_html)
 
+        # Enviar correo a la lista de correos
         server = smtplib.SMTP(smtp_server, smtp_port)
         server.starttls()
         server.login(sender_email, sender_password)
