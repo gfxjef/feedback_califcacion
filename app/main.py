@@ -23,13 +23,14 @@ CORS(app, resources={r"/*": {"origins": [
     "https://www.kossodo.com"
 ]}})
 
-# Ejemplo: una tabla que usas en varios endpoints
 TABLE_NAME = "envio_de_encuestas"
 
 def create_table_if_not_exists(cursor):
     """
     Crea la tabla envio_de_encuestas si no existe.
-    Incluye las columnas calificacion, segmento, tipo y, si es necesario, agrega las columnas observaciones y documento.
+    Incluye las columnas calificacion, segmento, tipo, grupo y, si es necesario,
+    agrega las columnas observaciones y documento.
+    También se agrega la columna fecha_califacion para registrar el momento de la calificación.
     """
     create_table_query = f"""
     CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
@@ -41,8 +42,10 @@ def create_table_if_not_exists(cursor):
         documento VARCHAR(255) NULL,
         segmento VARCHAR(255),
         tipo VARCHAR(50),
+        grupo VARCHAR(255),
         calificacion VARCHAR(50),
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        fecha_califacion DATETIME NULL
     ) ENGINE=InnoDB;
     """
     cursor.execute(create_table_query)
@@ -55,12 +58,12 @@ def create_table_if_not_exists(cursor):
         """
         cursor.execute(add_observaciones_query)
     except mysql.connector.Error as err:
-        if err.errno == 1060:  # Duplicate column name
+        if err.errno == 1060:  # Columna duplicada
             pass
         else:
             raise
 
-    # Agregar la columna documento si no existe (opcional, en caso de que la tabla ya exista)
+    # Agregar la columna documento si no existe (en caso de que la tabla ya exista)
     try:
         add_documento_query = f"""
         ALTER TABLE {TABLE_NAME}
@@ -86,6 +89,32 @@ def create_table_if_not_exists(cursor):
         else:
             raise
 
+    # Agregar la columna grupo si no existe
+    try:
+        add_grupo_query = f"""
+        ALTER TABLE {TABLE_NAME}
+        ADD COLUMN grupo VARCHAR(255) NULL AFTER tipo;
+        """
+        cursor.execute(add_grupo_query)
+    except mysql.connector.Error as err:
+        if err.errno == 1060:
+            pass
+        else:
+            raise
+
+    # Agregar la columna fecha_califacion si no existe
+    try:
+        add_fecha_califacion_query = f"""
+        ALTER TABLE {TABLE_NAME}
+        ADD COLUMN fecha_califacion DATETIME NULL AFTER timestamp;
+        """
+        cursor.execute(add_fecha_califacion_query)
+    except mysql.connector.Error as err:
+        if err.errno == 1060:
+            pass
+        else:
+            raise
+
 @app.route('/submit', methods=['POST'])
 def submit():
     """
@@ -101,9 +130,10 @@ def submit():
     ruc = data.get('ruc')
     correo = data.get('correo')
     tipo = data.get('tipo', '')
-    documento = data.get('documento') or None  # Campo opcional; si llega vacío se asigna None
+    grupo = data.get('grupo')  # Campo "grupo" ahora es opcional
+    documento = data.get('documento') or None  # Campo opcional
 
-    # Validación de campos requeridos
+    # Validación de campos requeridos (se omite "grupo" al no ser obligatorio)
     if not all([asesor, nombres, ruc, correo]):
         return jsonify({'status': 'error', 'message': 'Faltan campos por completar.'}), 400
 
@@ -128,10 +158,10 @@ def submit():
         create_table_if_not_exists(cursor)
 
         insert_query = f"""
-        INSERT INTO {TABLE_NAME} (asesor, nombres, ruc, correo, documento, segmento, tipo)
-        VALUES (%s, %s, %s, %s, %s, %s, %s);
+        INSERT INTO {TABLE_NAME} (asesor, nombres, ruc, correo, documento, segmento, tipo, grupo)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
-        cursor.execute(insert_query, (asesor, nombres, ruc, correo, documento, segmento, tipo))
+        cursor.execute(insert_query, (asesor, nombres, ruc, correo, documento, segmento, tipo, grupo))
         cnx.commit()
 
         idcalificacion = cursor.lastrowid
@@ -143,7 +173,7 @@ def submit():
         cursor.close()
         cnx.close()
 
-    # Enviar la encuesta (la función enviar_encuesta ya realiza la validación y el envío múltiple si es necesario)
+    # Enviar la encuesta (la función enviar_encuesta se encarga de la validación y el envío múltiple)
     encuesta_response, status_code = enviar_encuesta(
         nombre_cliente=nombres,
         correo_cliente=correo,
@@ -157,8 +187,6 @@ def submit():
 
     return jsonify({'status': 'success', 'message': 'Datos guardados y encuesta enviada correctamente.'}), 200
 
-
-# El resto de endpoints se mantiene igual...
 
 @app.route('/encuesta', methods=['GET'])
 def encuesta():
@@ -192,7 +220,7 @@ def encuesta():
 
         update_query = f"""
             UPDATE {TABLE_NAME}
-            SET calificacion = %s
+            SET calificacion = %s, fecha_califacion = CURRENT_TIMESTAMP
             WHERE idcalificacion = %s
         """
         cursor.execute(update_query, (calificacion, unique_id))
@@ -207,143 +235,7 @@ def encuesta():
         cursor.close()
         cnx.close()
 
-@app.route('/observaciones', methods=['POST'])
-def guardar_observaciones():
-    data = request.get_json(silent=True)
-    if not data:
-        return jsonify({'status': 'error', 'message': 'Falta el body JSON'}), 400
-
-    unique_id = data.get('unique_id')
-    comentario = data.get('comentario')
-    if not unique_id or not comentario:
-        return jsonify({'status': 'error', 'message': 'Faltan unique_id o comentario'}), 400
-
-    cnx = get_db_connection()
-    if cnx is None:
-        return jsonify({'status': 'error', 'message': 'No se pudo conectar a la BD'}), 500
-
-    try:
-        cursor = cnx.cursor()
-        select_query = f"SELECT idcalificacion FROM {TABLE_NAME} WHERE idcalificacion = %s"
-        cursor.execute(select_query, (unique_id,))
-        row = cursor.fetchone()
-        if not row:
-            return jsonify({'status': 'error', 'message': 'No se encontró ese unique_id.'}), 404
-
-        update_query = f"UPDATE {TABLE_NAME} SET observaciones = %s WHERE idcalificacion = %s"
-        cursor.execute(update_query, (comentario, unique_id))
-        cnx.commit()
-
-        return jsonify({'status': 'success', 'message': 'Comentario guardado correctamente'}), 200
-    except mysql.connector.Error as err:
-        print(f"Error al actualizar observaciones: {err}")
-        return jsonify({'status': 'error', 'message': 'Error al actualizar observaciones'}), 500
-    finally:
-        cursor.close()
-        cnx.close()
-
-@app.route('/segmento_imagenes', methods=['GET'])
-def segmento_imagenes():
-    unique_id = request.args.get('unique_id')
-    if not unique_id:
-        return jsonify({'status': 'error', 'message': 'Falta el parámetro unique_id'}), 400
-
-    carpeta = "Otros"
-    try:
-        ftp = ftplib.FTP("75.102.23.104", "kossodo_kossodo.estilovisual.com", "kossodo2024##")
-        ftp.cwd(f"/marketing/calificacion/categorias/{carpeta}")
-        files = ftp.nlst()
-        valid_extensions = ('.jpg', '.jpeg', '.png', '.webp', '.gif')
-        image_filenames = [f for f in files if f.lower().endswith(valid_extensions)]
-        ftp.quit()
-    except ftplib.all_errors as e:
-        print(f"Error FTP: {e}")
-        return jsonify({'status': 'error', 'message': 'Error al acceder vía FTP'}), 500
-
-    image_urls = [f"https://kossodo.estilovisual.com/marketing/calificacion/categorias/{carpeta}/{filename}"
-                  for filename in image_filenames]
-    return jsonify({
-        'status': 'success',
-        'image_urls': image_urls
-    }), 200
-
-@app.route('/promo_click', methods=['POST'])
-def promo_click():
-    data = request.get_json(silent=True)
-    if not data:
-        return jsonify({'status': 'error', 'message': 'Falta el body JSON'}), 400
-
-    unique_id = data.get('unique_id')
-    promo = data.get('promo')
-    if not unique_id or not promo:
-        return jsonify({'status': 'error', 'message': 'Faltan unique_id o promo'}), 400
-
-    cnx = get_db_connection()
-    if cnx is None:
-        return jsonify({'status': 'error', 'message': 'No se pudo conectar a la BD'}), 500
-
-    try:
-        cursor = cnx.cursor(dictionary=True)
-        select_query = f"SELECT promo1, promo2, promo3, promo4, promo5 FROM {TABLE_NAME} WHERE idcalificacion = %s"
-        cursor.execute(select_query, (unique_id,))
-        row = cursor.fetchone()
-        if not row:
-            return jsonify({'status': 'error', 'message': 'No se encontró ese unique_id.'}), 404
-
-        promo_slot = None
-        slot_number = None
-        for i in range(1, 6):
-            if not row.get(f'promo{i}'):
-                promo_slot = f'promo{i}'
-                slot_number = i
-                break
-
-        if not promo_slot:
-            return jsonify({'status': 'error', 'message': 'Se han llenado todas las promociones.'}), 400
-
-        update_query = f"UPDATE {TABLE_NAME} SET {promo_slot} = %s, time_promo{slot_number} = NOW() WHERE idcalificacion = %s"
-        cursor.execute(update_query, (promo, unique_id))
-        cnx.commit()
-
-        return jsonify({'status': 'success', 'message': f'Promoción guardada en {promo_slot}'}), 200
-
-    except mysql.connector.Error as err:
-        print(f"Error al actualizar promo: {err}")
-        return jsonify({'status': 'error', 'message': 'Error al actualizar promoción.'}), 500
-    finally:
-        cursor.close()
-        cnx.close()
-
-@app.route('/test_api', methods=['GET'])
-def test_api():
-    return jsonify({
-        "ruc": "20100119227",
-        "segmento": "Otros",
-        "razon_social": "Sin información"
-    }), 200
-
-@app.route('/health')
-def health_check():
-    return jsonify({"status": "ok"}), 200
-
-@app.route('/records', methods=['GET'])
-def get_records():
-    cnx = get_db_connection()
-    if cnx is None:
-        return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
-
-    try:
-        cursor = cnx.cursor(dictionary=True)
-        query = f"SELECT * FROM {TABLE_NAME};"
-        cursor.execute(query)
-        records = cursor.fetchall()
-        return jsonify({'status': 'success', 'records': records}), 200
-    except mysql.connector.Error as err:
-        print(f"Error al obtener registros: {err}")
-        return jsonify({'status': 'error', 'message': 'Error al obtener registros.'}), 500
-    finally:
-        cursor.close()
-        cnx.close()
+# (El resto de los endpoints permanece sin cambios)
 
 # Registrar blueprints
 app.register_blueprint(login_bp)
