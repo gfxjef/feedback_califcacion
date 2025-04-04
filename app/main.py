@@ -245,7 +245,66 @@ def encuesta():
 
 
 
-# (El resto de los endpoints permanece sin cambios)
+@app.route('/observaciones', methods=['POST'])
+def guardar_observaciones():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({'status': 'error', 'message': 'Falta el body JSON'}), 400
+
+    unique_id = data.get('unique_id')
+    comentario = data.get('comentario')
+    if not unique_id or not comentario:
+        return jsonify({'status': 'error', 'message': 'Faltan unique_id o comentario'}), 400
+
+    cnx = get_db_connection()
+    if cnx is None:
+        return jsonify({'status': 'error', 'message': 'No se pudo conectar a la BD'}), 500
+
+    try:
+        cursor = cnx.cursor()
+        select_query = f"SELECT idcalificacion FROM {TABLE_NAME} WHERE idcalificacion = %s"
+        cursor.execute(select_query, (unique_id,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'status': 'error', 'message': 'No se encontró ese unique_id.'}), 404
+
+        update_query = f"UPDATE {TABLE_NAME} SET observaciones = %s WHERE idcalificacion = %s"
+        cursor.execute(update_query, (comentario, unique_id))
+        cnx.commit()
+
+        return jsonify({'status': 'success', 'message': 'Comentario guardado correctamente'}), 200
+    except mysql.connector.Error as err:
+        print(f"Error al actualizar observaciones: {err}")
+        return jsonify({'status': 'error', 'message': 'Error al actualizar observaciones'}), 500
+    finally:
+        cursor.close()
+        cnx.close()
+
+@app.route('/segmento_imagenes', methods=['GET'])
+def segmento_imagenes():
+    unique_id = request.args.get('unique_id')
+    if not unique_id:
+        return jsonify({'status': 'error', 'message': 'Falta el parámetro unique_id'}), 400
+
+    carpeta = "Otros"
+    try:
+        ftp = ftplib.FTP("75.102.23.104", "kossodo_kossodo.estilovisual.com", "kossodo2024##")
+        ftp.cwd(f"/marketing/calificacion/categorias/{carpeta}")
+        files = ftp.nlst()
+        valid_extensions = ('.jpg', '.jpeg', '.png', '.webp', '.gif')
+        image_filenames = [f for f in files if f.lower().endswith(valid_extensions)]
+        ftp.quit()
+    except ftplib.all_errors as e:
+        print(f"Error FTP: {e}")
+        return jsonify({'status': 'error', 'message': 'Error al acceder vía FTP'}), 500
+
+    image_urls = [f"https://kossodo.estilovisual.com/marketing/calificacion/categorias/{carpeta}/{filename}"
+                  for filename in image_filenames]
+    return jsonify({
+        'status': 'success',
+        'image_urls': image_urls
+    }), 200
+
 
 # Registrar blueprints
 app.register_blueprint(login_bp)
