@@ -43,9 +43,10 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta, tip
     base_url = "https://feedback-califcacion.onrender.com"
 
     # Generar enlaces para Bueno, Regular, Malo
-    link_bueno = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Bueno"
-    link_regular = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Regular"
-    link_malo = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Malo"
+    # Generar enlaces para Bueno, Regular, Malo (incluyendo el parámetro tipo)
+    link_bueno = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Bueno&tipo={tipo}"
+    link_regular = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Regular&tipo={tipo}"
+    link_malo = f"{base_url}/encuesta?unique_id={unique_id}&calificacion=Malo&tipo={tipo}"
 
     # Construir el HTML del correo
     html_body = f"""<!DOCTYPE html>
