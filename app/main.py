@@ -13,7 +13,6 @@ from .enviar_encuesta import enviar_encuesta
 from .login import login_bp
 from .roles_menu import roles_menu_bp
 from .Mailing.wix import wix_bp
-from .records import records
 
 app = Flask(__name__)
 
@@ -317,11 +316,28 @@ def segmento_imagenes():
     }), 200
 
 
+@records_bp.route('/records', methods=['GET'])
+def get_records():
+    cnx = get_db_connection()
+    if cnx is None:
+        return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
+
+    try:
+        cursor = cnx.cursor(dictionary=True)
+        query = f"SELECT * FROM `{TABLE_NAME}`;"
+        cursor.execute(query)
+        records = cursor.fetchall()
+        return jsonify({'status': 'success', 'records': records}), 200
+    except Exception as err:
+        return jsonify({'status': 'error', 'message': str(err)}), 500
+    finally:
+        cursor.close()
+        cnx.close()
+        
 # Registrar blueprints
 app.register_blueprint(login_bp)
 app.register_blueprint(roles_menu_bp)
 app.register_blueprint(wix_bp, url_prefix='/wix')
-app.register_blueprint(records_bp)
 
 
 if __name__ == '__main__':
