@@ -200,8 +200,8 @@ def encuesta():
     if not all([unique_id, calificacion]):
         return jsonify({'status': 'error', 'message': 'Parámetros faltantes (unique_id y calificacion).'}), 400
 
-    valid_calificaciones = ["Bueno", "Regular", "Malo"]
-    if calificacion not in valid_calificaciones:
+    valid_calificaciones = ["bueno", "regular", "malo"]
+    if calificacion.strip().lower() not in valid_calificaciones:
         return jsonify({'status': 'error', 'message': 'Calificación inválida. Solo se permite Bueno, Regular o Malo.'}), 400
 
     cnx = get_db_connection()
@@ -230,8 +230,8 @@ def encuesta():
         cursor.execute(update_query, (calificacion, unique_id))
         cnx.commit()
 
-        # Redirigir según la calificación
-        if calificacion == "Malo":
+        # Redirigir según la calificación, usando strip() y lower() para la comparación
+        if calificacion.strip().lower() == "malo":
             return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta_lamentamos.html?unique_id={unique_id}")
         else:
             return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta-gracias.html?unique_id={unique_id}")
@@ -242,6 +242,7 @@ def encuesta():
     finally:
         cursor.close()
         cnx.close()
+
 
 
 # (El resto de los endpoints permanece sin cambios)
