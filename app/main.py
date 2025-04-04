@@ -226,7 +226,11 @@ def encuesta():
         cursor.execute(update_query, (calificacion, unique_id))
         cnx.commit()
 
-        return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta-gracias.html?unique_id={unique_id}")
+        # Redirigir según la calificación
+        if calificacion == "Malo":
+            return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta_lamentamos.html?unique_id={unique_id}")
+        else:
+            return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta-gracias.html?unique_id={unique_id}")
 
     except mysql.connector.Error as err:
         print(f"Error al actualizar la calificación: {err}")
@@ -234,6 +238,7 @@ def encuesta():
     finally:
         cursor.close()
         cnx.close()
+
 
 # (El resto de los endpoints permanece sin cambios)
 
