@@ -196,6 +196,7 @@ def submit():
 def encuesta():
     unique_id = request.args.get('unique_id')
     calificacion = request.args.get('calificacion')
+    tipo = request.args.get('tipo')  # Capturamos el parámetro tipo
 
     if not all([unique_id, calificacion]):
         return jsonify({'status': 'error', 'message': 'Parámetros faltantes (unique_id y calificacion).'}), 400
@@ -230,10 +231,18 @@ def encuesta():
         cursor.execute(update_query, (calificacion, unique_id))
         cnx.commit()
 
-        # Redirigir según la calificación, usando strip() y lower() para la comparación
+        # Si la calificación es "Malo", se decide la redirección según el tipo
         if calificacion.strip().lower() == "malo":
-            return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta_lamentamos.html?unique_id={unique_id}")
+            # Se espera que 'tipo' llegue en el query string
+            tipo_param = (tipo or "").strip().lower()
+            if tipo_param in ["ventas (ot)", "ventas (oc)"]:
+                # Redirige a la página de lamentación para Ventas
+                return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta_lamentamos_ventas.html?unique_id={unique_id}")
+            else:
+                # Para Coordinador (Conformidad) u otro, redirige a la página de lamentación de coordinación
+                return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta_lamentamos_coordinacion.html?unique_id={unique_id}")
         else:
+            # Para "Bueno" o "Regular" redirige a la página de agradecimiento
             return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta-gracias.html?unique_id={unique_id}")
 
     except mysql.connector.Error as err:
@@ -242,6 +251,7 @@ def encuesta():
     finally:
         cursor.close()
         cnx.close()
+
 
 
 
