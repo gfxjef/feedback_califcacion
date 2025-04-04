@@ -114,6 +114,10 @@ def create_table_if_not_exists(cursor):
             pass
         else:
             raise
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({"status": "ok"}), 200
+
 
 @app.route('/submit', methods=['POST'])
 def submit():
