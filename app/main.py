@@ -13,6 +13,7 @@ from .enviar_encuesta import enviar_encuesta
 from .login import login_bp
 from .roles_menu import roles_menu_bp
 from .Mailing.wix import wix_bp
+from .records import records
 
 app = Flask(__name__)
 
@@ -320,6 +321,8 @@ def segmento_imagenes():
 app.register_blueprint(login_bp)
 app.register_blueprint(roles_menu_bp)
 app.register_blueprint(wix_bp, url_prefix='/wix')
+app.register_blueprint(records_bp)
+
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
