@@ -236,7 +236,7 @@ def encuesta():
         if calificacion.strip().lower() == "malo":
             # Se espera que 'tipo' llegue en el query string
             tipo_param = (tipo or "").strip().lower()
-            if tipo_param in ["ventas (ot)", "ventas (oc)"]:
+            if tipo_param in ["Ventas (OT)", "Ventas (OC)"]:
                 # Redirige a la página de lamentación para Ventas
                 return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta_lamentamos_ventas.html?unique_id={unique_id}")
             else:
