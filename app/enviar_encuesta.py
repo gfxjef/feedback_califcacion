@@ -30,7 +30,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta, tip
         image_message = "https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_CONF.webp"
     elif tipo == "Ventas (OC)":
         # Enlaces de ejemplo (puedes ajustarlos)
-        image_message = "https://example.com/mail_calif_ventas_oc.webp"
+        image_message = "https://kossodo.estilovisual.com/marketing/calificacion/mail_calif_OC.webp"
     elif tipo == "Entregado":
         image_message = "https://example.com/mail_calif_entregado.webp"
     else:
