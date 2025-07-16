@@ -7,13 +7,23 @@ from flask import Flask, request, jsonify, redirect
 from flask_cors import CORS
 import ftplib
 
-# Importa la función de conexión de db.py (importaciones absolutas desde /app)
-from db import get_db_connection
-from enviar_encuesta import enviar_encuesta
-from login import login_bp
-from roles_menu import roles_menu_bp
-from Mailing.wix import wix_bp
-from records import records_bp
+# Importaciones del paquete app para compatibilidad con Gunicorn en producción
+try:
+    # Intenta importaciones del paquete (para Render/producción)
+    from app.db import get_db_connection
+    from app.enviar_encuesta import enviar_encuesta
+    from app.login import login_bp
+    from app.roles_menu import roles_menu_bp
+    from app.Mailing.wix import wix_bp
+    from app.records import records_bp
+except ImportError:
+    # Si falla, usa importaciones relativas (para desarrollo con run_app.py)
+    from db import get_db_connection
+    from enviar_encuesta import enviar_encuesta
+    from login import login_bp
+    from roles_menu import roles_menu_bp
+    from Mailing.wix import wix_bp
+    from records import records_bp
 
 app = Flask(__name__)
 
