@@ -14,6 +14,10 @@ os.environ.setdefault('MYSQL_PASSWORD', 'kmachin1')
 os.environ.setdefault('MYSQL_HOST', 'atusaludlicoreria.com')
 os.environ.setdefault('MYSQL_DATABASE', 'atusalud_kossomet')
 
+# Configurar variables de entorno SMTP Gmail  
+os.environ.setdefault('EMAIL_USER', 'jcamacho@kossodo.com')
+os.environ.setdefault('EMAIL_PASSWORD', 'jxehvsnsgwirlleq')
+
 # Agregar el directorio actual al path para importaciones
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, current_dir)

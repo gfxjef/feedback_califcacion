@@ -22,9 +22,9 @@ def test_registro_ventas_oc():
         "nombres": "Maria Elena Rodriguez Gutierrez", 
         "ruc": "10480528501",
         "correo": "gfxjef@gmail.com",   
-        "tipo": "Ventas (OC)",
-        "grupo": "Corporativo",
-        "documento": "OC-2024-001234"
+        "tipo": "Coordinador (Conformidad)",
+        "grupo": "kossomet",
+        "documento": "OC-2024-0012wdwdwd34"
     }
     
     print("🧪 INICIANDO PRUEBA DE REGISTRO - VENTAS (OC)")

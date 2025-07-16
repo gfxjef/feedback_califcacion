@@ -441,7 +441,7 @@ def guardar_feedback_especifico():
         nuevo_feedback = f"Feedback específico: {texto_motivo}"
         
         if observaciones_actual:
-            observaciones_nuevas = f"{observaciones_actual}\n{nuevo_feedback}"
+            observaciones_nuevas = f"{observaciones_actual}, {nuevo_feedback}"
         else:
             observaciones_nuevas = nuevo_feedback
             

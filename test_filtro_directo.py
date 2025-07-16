@@ -12,7 +12,7 @@ os.environ.setdefault('MYSQL_PASSWORD', 'kmachin1')
 os.environ.setdefault('MYSQL_HOST', 'atusaludlicoreria.com')
 os.environ.setdefault('MYSQL_DATABASE', 'atusalud_kossomet')
 os.environ.setdefault('EMAIL_USER', 'jcamacho@kossodo.com')
-os.environ.setdefault('EMAIL_PASSWORD', 'kfmklqrzzrengbhk')
+os.environ.setdefault('EMAIL_PASSWORD', 'jxehvsnsgwirlleq')
 
 # Agregar directorio app al path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
