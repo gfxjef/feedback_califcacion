@@ -5,14 +5,18 @@ Test directo del filtro de emails importando la función directamente
 
 import os
 import sys
+from dotenv import load_dotenv
 
-# Configurar variables de entorno
-os.environ.setdefault('MYSQL_USER', 'atusalud_atusalud')
-os.environ.setdefault('MYSQL_PASSWORD', 'kmachin1')
-os.environ.setdefault('MYSQL_HOST', 'atusaludlicoreria.com')
-os.environ.setdefault('MYSQL_DATABASE', 'atusalud_kossomet')
-os.environ.setdefault('EMAIL_USER', 'jcamacho@kossodo.com')
-os.environ.setdefault('EMAIL_PASSWORD', 'jxehvsnsgwirlleq')
+# Cargar variables de entorno desde .env
+load_dotenv()
+
+# Verificar que las variables críticas estén configuradas
+required_vars = ['MYSQL_USER', 'MYSQL_PASSWORD', 'MYSQL_HOST', 'MYSQL_DATABASE', 'EMAIL_USER', 'EMAIL_PASSWORD']
+missing_vars = [var for var in required_vars if not os.environ.get(var)]
+if missing_vars:
+    print(f"❌ ERROR: Variables de entorno faltantes: {', '.join(missing_vars)}")
+    print("   Crea un archivo .env con estas variables")
+    sys.exit(1)
 
 # Agregar directorio app al path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))

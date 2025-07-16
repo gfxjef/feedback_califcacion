@@ -1,8 +1,9 @@
 import requests
+import os
 
-# Configuración con tus datos de EmailOctopus
-OCTOPUS_API_KEY = "eo_ebaaa54ce54b71a8f43cf0f717834982c846dca447245f0dff1cb5880f57ed46"
-OCTOPUS_LIST_ID = "4de8d66a-71ea-11ee-b78c-d7b693f1ca1a"
+# Configuración con datos de EmailOctopus desde variables de entorno
+OCTOPUS_API_KEY = os.environ.get('OCTOPUS_API_KEY')
+OCTOPUS_LIST_ID = os.environ.get('OCTOPUS_LIST_ID')
 # Usamos el endpoint correcto sin /api/2.0
 BASE_URL = "https://api.emailoctopus.com"
 
@@ -18,6 +19,10 @@ def add_contact_to_octopus(email_address, nombre_apellido, empresa, ruc_dni):
     
     Retorna el objeto response de la petición.
     """
+    # Validar que las credenciales estén configuradas
+    if not OCTOPUS_API_KEY or not OCTOPUS_LIST_ID:
+        raise ValueError("OCTOPUS_API_KEY y OCTOPUS_LIST_ID deben estar configuradas en las variables de entorno")
+    
     url = f"{BASE_URL}/lists/{OCTOPUS_LIST_ID}/contacts"
     headers = {
         "Content-Type": "application/json",

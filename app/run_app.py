@@ -8,15 +8,21 @@ Configura variables de entorno y maneja importaciones correctamente
 import os
 import sys
 
-# Configurar variables de entorno con credenciales reales de BD
-os.environ.setdefault('MYSQL_USER', 'atusalud_atusalud')
-os.environ.setdefault('MYSQL_PASSWORD', 'kmachin1')
-os.environ.setdefault('MYSQL_HOST', 'atusaludlicoreria.com')
-os.environ.setdefault('MYSQL_DATABASE', 'atusalud_kossomet')
+# Cargar variables de entorno desde .env
+from dotenv import load_dotenv
+load_dotenv()
 
-# Configurar variables de entorno SMTP Gmail  
-os.environ.setdefault('EMAIL_USER', 'jcamacho@kossodo.com')
-os.environ.setdefault('EMAIL_PASSWORD', 'jxehvsnsgwirlleq')
+# Verificar que las variables de entorno requeridas estén configuradas
+required_vars = [
+    'MYSQL_USER', 'MYSQL_PASSWORD', 'MYSQL_HOST', 'MYSQL_DATABASE',
+    'EMAIL_USER', 'EMAIL_PASSWORD'
+]
+
+missing_vars = [var for var in required_vars if not os.environ.get(var)]
+if missing_vars:
+    print(f"❌ ERROR: Faltan las siguientes variables de entorno: {', '.join(missing_vars)}")
+    print("   Crea un archivo .env con estas variables o configúralas en el sistema")
+    sys.exit(1)
 
 # Agregar el directorio actual al path para importaciones
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -25,9 +31,10 @@ sys.path.insert(0, current_dir)
 print("🚀 INICIANDO SERVIDOR FLASK DESDE /app")
 print("=" * 45)
 print(f"Directorio de ejecución: {current_dir}")
-print("Variables de entorno configuradas con BD real")
-print("BD: atusaludlicoreria.com/atusalud_kossomet")
-print("Servidor: http://localhost:3000")
+print("✅ Variables de entorno cargadas desde .env")
+print(f"🗄️  BD: {os.environ.get('MYSQL_HOST')}/{os.environ.get('MYSQL_DATABASE')}")
+print(f"📧 Email: {os.environ.get('EMAIL_USER')}")
+print("🌐 Servidor: http://localhost:3000")
 print("=" * 45)
 
 try:

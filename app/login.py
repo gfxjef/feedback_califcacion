@@ -14,13 +14,13 @@ login_bp = Blueprint('login_bp', __name__)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# Configuración de la base de datos (ajusta los nombres de variables si es necesario)
+# Configuración de la base de datos desde variables de entorno
 DB_CONFIG = {
-    'user': os.getenv('DB_USER', 'atusalud_atusalud'),
-    'password': os.getenv('DB_PASSWORD', 'kmachin1'),
-    'host': os.getenv('DB_HOST', 'atusaludlicoreria.com'),
-    'database': os.getenv('DB_NAME', 'atusalud_kossomet'),
-    'port': int(os.getenv('DB_PORT', 3306))
+    'user': os.getenv('MYSQL_USER'),
+    'password': os.getenv('MYSQL_PASSWORD'),
+    'host': os.getenv('MYSQL_HOST'),
+    'database': os.getenv('MYSQL_DATABASE'),
+    'port': int(os.getenv('MYSQL_PORT', 3306))
 }
 
 def get_db_connection():
