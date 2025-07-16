@@ -20,7 +20,7 @@ def test_registro_ventas_oc():
     datos_prueba = {
         "asesor": "Carlos Mendoza",
         "nombres": "Maria Elena Rodriguez Gutierrez", 
-        "ruc": "20512345678",
+        "ruc": "10480528501",
         "correo": "gfxjef@gmail.com",   
         "tipo": "Ventas (OC)",
         "grupo": "Corporativo",

@@ -273,8 +273,12 @@ def encuesta():
                 cursor_datos.close()
                 
                 if datos_cliente:
-                    # Generar número de consulta
-                    numero_consulta = f"CONS-{unique_id:06d}"
+                    # Generar número de consulta con validación
+                    try:
+                        unique_id_int = int(unique_id) if unique_id else 0
+                        numero_consulta = f"CONS-{unique_id_int:06d}"
+                    except (ValueError, TypeError):
+                        numero_consulta = f"CONS-{unique_id or 'UNKNOWN'}"
                     
                     # Enviar email de lamentamos automáticamente
                     print(f"📧 Enviando email de lamentamos automático para calificación {calificacion_num}")
