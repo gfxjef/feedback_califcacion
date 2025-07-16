@@ -100,7 +100,7 @@ def generar_previews_finales():
     
     print("\n🔵 OPERACIONES:")
     print("   'Su orden de Servicio ah sido culminada. Valoramos su opinion")
-    print("   y 10 invitamos a seleccionar una de las opciones...'")
+    print("   y lo invitamos a seleccionar una de las opciones...'")
     
     print("\n⚫ COORDINADOR:")
     print("   'Valoramos su opinion y lo invitamos a seleccionar una de")

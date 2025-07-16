@@ -8,7 +8,7 @@ def get_email_template_ventas(nombre_cliente, documento, base_url, unique_id, ti
     # Preparar texto del número de documento
     documento_texto = ""
     if documento:
-        documento_texto = f'<p style="font-size:19px; color:#6cb79a; margin:10px 0; font-weight:bold;">Número de orden: {documento}</p>'
+        documento_texto = f'<p style="font-size:19px; color:#6cb79a; margin:10px 0; font-weight:bold;">Número de orden de trabajo: {documento}</p>'
 
     html_body = f"""<!DOCTYPE html>
 <html lang="es">
@@ -146,7 +146,7 @@ def get_email_template_operaciones(nombre_cliente, documento, base_url, unique_i
     # Preparar texto del número de documento
     documento_texto = ""
     if documento:
-        documento_texto = f'<p style="font-size:19px; color:#6cb79a; margin:10px 0; font-weight:bold;">Número de orden: {documento}</p>'
+        documento_texto = f'<p style="font-size:19px; color:#6cb79a; margin:10px 0; font-weight:bold;">Número de orden de trabajo: {documento}</p>'
 
     html_body = f"""<!DOCTYPE html>
 <html lang="es">
@@ -191,8 +191,8 @@ def get_email_template_operaciones(nombre_cliente, documento, base_url, unique_i
                     <tr>
                         <td align="center" style="padding:15px 20px;">
                             <p style="font-size:18px; color:#2b3352; line-height:1.2; letter-spacing:-0.3px; margin:0; text-align:center;">
-                                Su <strong>orden de Servicio</strong> ah sido culminada. <strong>Valoramos su
-                                opinion</strong> y 10 invitamos a seleccionar una de las opciones para
+                                Su <strong>orden de Trabajo</strong> ah sido culminada. <strong>Valoramos su
+                                opinion</strong> y lo invitamos a seleccionar una de las opciones para
                                 indicarnos córno percibio nuestra atención en este proceso.
                             </p>
                         </td>
@@ -284,7 +284,7 @@ def get_email_template_coordinador(nombre_cliente, documento, base_url, unique_i
     # Preparar texto del número de documento
     documento_texto = ""
     if documento:
-        documento_texto = f'<p style="font-size:19px; color:#6cb79a; margin:10px 0; font-weight:bold;">Número de orden: {documento}</p>'
+        documento_texto = f'<p style="font-size:19px; color:#6cb79a; margin:10px 0; font-weight:bold;">Número de orden de trabajo: {documento}</p>'
 
     html_body = f"""<!DOCTYPE html>
 <html lang="es">
@@ -327,10 +327,20 @@ def get_email_template_coordinador(nombre_cliente, documento, base_url, unique_i
                     </tr>
                     <!-- Texto específico para Coordinador -->
                     <tr>
-                        <td align="center" style="padding:15px 20px;">
+                        <td align="center" style="padding:15px 20px;">"""
+
+    # Texto específico según el tipo
+    if tipo == "Ventas (OC)":
+        texto_especifico = """Su <strong>orden de compra</strong> ha sido creada y se encuentra en proceso de
+                            atención. <strong>Valoramos su opinion</strong> y lo invitamos a seleccionar una de
+                            las opciones para indicarnos cómo percibio nuestra atención."""
+    else:
+        texto_especifico = """<strong>Valoramos su opinion</strong> y lo invitamos a seleccionar una de
+                            las opciones para indicarnos cómo percibio nuestro servicio."""
+
+    html_body += f"""
                             <p style="font-size:18px; color:#2b3352; line-height:1.2; letter-spacing:-0.3px; margin:0; text-align:center;">
-                                <strong>Valoramos su opinion</strong> y lo invitamos a seleccionar una de
-                                las opciones para indicarnos cómo percibio nuestro servicio.
+                                {texto_especifico}
                             </p>
                         </td>
                     </tr>
@@ -419,7 +429,7 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
     """Template de email para Ventas cuando la calificación es baja (1-4)"""
     
     # Preparar texto del documento
-    documento_texto = f'<p style="color:#6cb79a; font-size:19px; font-weight:bold; margin:15px 0; text-align:center;">Número de orden: {documento}</p>' if documento else ""
+    documento_texto = f'<p style="color:#6cb79a; font-size:19px; font-weight:bold; margin:15px 0; text-align:center;">Número de orden de trabajo: {documento}</p>' if documento else ""
     
     html_body = f"""<!DOCTYPE html>
 <html lang="es">

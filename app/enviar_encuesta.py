@@ -59,13 +59,17 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta, tip
     # URL base donde se ubica el endpoint /encuesta
     base_url = "https://feedback-califcacion.onrender.com"
 
-    # Generar el HTML según el tipo de envío usando templates separados
-    if tipo == "Ventas" or tipo == "Ventas (OT)" or tipo == "Ventas (OC)":
+    # Generar el HTML según el tipo de envío usando templates separados - NUEVA LÓGICA CORREGIDA
+    if tipo == "Ventas (OT)":
         html_body = get_email_template_ventas(nombre_cliente, documento, base_url, unique_id, tipo)
-    elif tipo == "Operaciones":
-        html_body = get_email_template_operaciones(nombre_cliente, documento, base_url, unique_id, tipo)
-    elif tipo == "Coordinador (Conformidad)" or tipo == "Entregado":
+    elif tipo == "Ventas (OC)":
         html_body = get_email_template_coordinador(nombre_cliente, documento, base_url, unique_id, tipo)
+    elif tipo == "Coordinador (Conformidad)":
+        html_body = get_email_template_operaciones(nombre_cliente, documento, base_url, unique_id, tipo)
+    elif tipo == "Operaciones" or tipo == "Entregado":
+        html_body = get_email_template_operaciones(nombre_cliente, documento, base_url, unique_id, tipo)
+    elif tipo == "Ventas":  # Ventas genérico (sin OT/OC)
+        html_body = get_email_template_ventas(nombre_cliente, documento, base_url, unique_id, tipo)
     else:
         # Template por defecto (Coordinador)
         html_body = get_email_template_coordinador(nombre_cliente, documento, base_url, unique_id, tipo)
@@ -140,11 +144,11 @@ def enviar_email_lamentamos(nombre_cliente, correo_cliente, numero_consulta, tip
     except ImportError:
         from templates_email import get_email_template_lamentamos_ventas, get_email_template_lamentamos_operaciones
     
-    # Determinar qué template usar según el tipo
-    if tipo in ["Ventas", "Ventas (OT)", "Ventas (OC)"]:
+    # Determinar qué template de lamentamos usar según el tipo - NUEVA LÓGICA CORREGIDA
+    if tipo in ["Ventas", "Ventas (OT)"]:
         html_body = get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, unique_id, tipo)
         tipo_email = "Ventas"
-    elif tipo in ["Operaciones", "Coordinador (Conformidad)", "Entregado"]:
+    elif tipo in ["Ventas (OC)", "Coordinador (Conformidad)", "Operaciones", "Entregado"]:
         html_body = get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_url, unique_id, tipo)
         tipo_email = "Operaciones"
     else:
