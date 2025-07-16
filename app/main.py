@@ -7,13 +7,13 @@ from flask import Flask, request, jsonify, redirect
 from flask_cors import CORS
 import ftplib
 
-# Importa la función de conexión de db.py
-from .db import get_db_connection
-from .enviar_encuesta import enviar_encuesta
-from .login import login_bp
-from .roles_menu import roles_menu_bp
-from .Mailing.wix import wix_bp
-from .records import records_bp  # Asegúrate de que records.py tenga records_bp definido
+# Importa la función de conexión de db.py (importaciones absolutas desde /app)
+from db import get_db_connection
+from enviar_encuesta import enviar_encuesta
+from login import login_bp
+from roles_menu import roles_menu_bp
+from Mailing.wix import wix_bp
+from records import records_bp
 
 app = Flask(__name__)
 
@@ -184,7 +184,8 @@ def submit():
         correo_cliente=correo,
         asesor=asesor,
         numero_consulta=numero_consulta,
-        tipo=tipo
+        tipo=tipo,
+        documento=documento
     )
 
     if status_code != 200:
@@ -202,16 +203,23 @@ def encuesta():
     if not all([unique_id, calificacion]):
         return jsonify({'status': 'error', 'message': 'Parámetros faltantes (unique_id y calificacion).'}), 400
 
-    valid_calificaciones = ["bueno", "regular", "malo"]
-    if calificacion.strip().lower() not in valid_calificaciones:
-        return jsonify({'status': 'error', 'message': 'Calificación inválida. Solo se permite Bueno, Regular o Malo.'}), 400
+    # Validar que la calificación sea un número del 1 al 10
+    if not calificacion:
+        return jsonify({'status': 'error', 'message': 'Calificación es requerida.'}), 400
+    
+    try:
+        calificacion_num = int(calificacion)
+        if calificacion_num < 1 or calificacion_num > 10:
+            return jsonify({'status': 'error', 'message': 'Calificación inválida. Solo se permite del 1 al 10.'}), 400
+    except ValueError:
+        return jsonify({'status': 'error', 'message': 'Calificación debe ser un número del 1 al 10.'}), 400
 
     cnx = get_db_connection()
     if cnx is None:
         return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
 
     try:
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(dictionary=True)
         select_query = f"SELECT calificacion FROM {TABLE_NAME} WHERE idcalificacion = %s"
         cursor.execute(select_query, (unique_id,))
         row = cursor.fetchone()
@@ -219,9 +227,9 @@ def encuesta():
         if not row:
             return jsonify({'status': 'error', 'message': 'No se encontró el registro con ese unique_id.'}), 404
 
-        calificacion_actual = row[0]
+        calificacion_actual = row['calificacion']
         # Si ya hay una calificación previa, redirige a "ya respondida"
-        if calificacion_actual and calificacion_actual.strip():
+        if calificacion_actual and str(calificacion_actual).strip():
             return redirect("https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta-ya-respondida.html")
 
         update_query = f"""
@@ -229,21 +237,28 @@ def encuesta():
             SET calificacion = %s, fecha_califacion = CURRENT_TIMESTAMP
             WHERE idcalificacion = %s
         """
-        cursor.execute(update_query, (calificacion, unique_id))
+        cursor.execute(update_query, (calificacion_num, unique_id))
         cnx.commit()
 
-        # Si la calificación es "Malo", se decide la redirección según el tipo
-        if calificacion.strip().lower() == "malo":
-            # Se espera que 'tipo' llegue en el query string
-            tipo_param = (tipo or "").strip().lower()
-            if tipo_param in ["Ventas (OT)", "Ventas (OC)"]:
+        # Lógica de redirección según la nueva escala numérica
+        # Calificaciones 1-4: Insatisfecho (equivalente a "Malo")
+        # Calificaciones 5-7: Regular 
+        # Calificaciones 8-10: Satisfecho (equivalente a "Bueno")
+        
+        if calificacion_num <= 4:
+            # Calificación baja - redirigir según el tipo
+            tipo_param = (tipo or "").strip()
+            if tipo_param in ["Ventas", "Ventas (OT)", "Ventas (OC)"]:
                 # Redirige a la página de lamentación para Ventas
                 return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta_lamentamos_ventas.html?unique_id={unique_id}")
+            elif tipo_param in ["Operaciones"]:
+                # Redirige a la página de lamentación para Operaciones
+                return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta_lamentamos_operaciones.html?unique_id={unique_id}")
             else:
                 # Para Coordinador (Conformidad) u otro, redirige a la página de lamentación de coordinación
                 return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta_lamentamos_coordinacion.html?unique_id={unique_id}")
         else:
-            # Para "Bueno" o "Regular" redirige a la página de agradecimiento
+            # Para calificaciones 5-10 redirige a la página de agradecimiento
             return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta-gracias.html?unique_id={unique_id}")
 
     except mysql.connector.Error as err:
@@ -317,6 +332,78 @@ def segmento_imagenes():
     }), 200
 
 
+@app.route('/feedback_especifico', methods=['GET'])
+def guardar_feedback_especifico():
+    """Endpoint para guardar feedback específico cuando la calificación es baja (1-4)"""
+    unique_id = request.args.get('unique_id')
+    tipo = request.args.get('tipo')
+    motivo = request.args.get('motivo')
+    
+    if not all([unique_id, tipo, motivo]):
+        return jsonify({'status': 'error', 'message': 'Parámetros faltantes (unique_id, tipo, motivo).'}), 400
+
+    cnx = get_db_connection()
+    if cnx is None:
+        return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
+
+    try:
+        cursor = cnx.cursor(dictionary=True)
+        
+        # Verificar que el registro existe
+        select_query = f"SELECT idcalificacion, observaciones FROM {TABLE_NAME} WHERE idcalificacion = %s"
+        cursor.execute(select_query, (unique_id,))
+        row = cursor.fetchone()
+        
+        if not row:
+            return jsonify({'status': 'error', 'message': 'No se encontró el registro con ese unique_id.'}), 404
+
+        # Preparar el texto del motivo según el tipo y motivo recibidos
+        motivos_textos = {
+            'ventas': {
+                'falta_informacion': 'Falta de información sobre servicios',
+                'demora_respuesta': 'Demora en respuesta a consultas',
+                'presion_venta': 'Sensación de presión en la venta',
+                'incapacidad_resolver': 'Incapacidad para resolver dudas'
+            },
+            'operaciones': {
+                'comunicacion_deficiente': 'Comunicación deficiente para coordinar servicio',
+                'fecha_lejana': 'Fecha disponible muy lejana',
+                'incumplimiento_fecha': 'Incumplimiento de fecha acordada',
+                'atencion_insatisfactoria': 'Atención técnica insatisfactoria',
+                'demora_informes': 'Demora en la entrega de informes',
+                'demora_consultas': 'Demora en la Respuestas a consultas técnicas'
+            }
+        }
+        
+        # Determinar el tipo normalizado
+        tipo_normalizado = 'ventas' if tipo.lower() in ['ventas', 'ventas (ot)', 'ventas (oc)'] else 'operaciones'
+        
+        # Obtener el texto del motivo
+        texto_motivo = motivos_textos.get(tipo_normalizado, {}).get(motivo, f"Motivo no especificado: {motivo}")
+        
+        # Actualizar las observaciones con el feedback específico
+        observaciones_actual = row['observaciones'] or ""
+        nuevo_feedback = f"Feedback específico: {texto_motivo}"
+        
+        if observaciones_actual:
+            observaciones_nuevas = f"{observaciones_actual}\n{nuevo_feedback}"
+        else:
+            observaciones_nuevas = nuevo_feedback
+            
+        update_query = f"UPDATE {TABLE_NAME} SET observaciones = %s WHERE idcalificacion = %s"
+        cursor.execute(update_query, (observaciones_nuevas, unique_id))
+        cnx.commit()
+
+        # Redirigir a página de agradecimiento por feedback específico
+        return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/feedback-registrado.html?unique_id={unique_id}")
+
+    except mysql.connector.Error as err:
+        print(f"Error al guardar feedback específico: {err}")
+        return jsonify({'status': 'error', 'message': 'Error al guardar feedback específico.'}), 500
+    finally:
+        cursor.close()
+        cnx.close()
+
 
         
 # Registrar blueprints
@@ -327,5 +414,5 @@ app.register_blueprint(records_bp)  # Registrar el blueprint de records
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 3000))
     app.run(host="0.0.0.0", port=port)

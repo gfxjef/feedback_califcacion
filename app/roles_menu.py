@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from mysql.connector import Error
-from .db import get_db_connection
+from db import get_db_connection
 
 TABLE_NAME = "roles_menu"
 roles_menu_bp = Blueprint('roles_menu_bp', __name__)
