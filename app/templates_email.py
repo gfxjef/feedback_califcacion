@@ -419,7 +419,7 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
     """Template de email para Ventas cuando la calificación es baja (1-4)"""
     
     # Preparar texto del documento
-    documento_texto = f'<p style="color:#6cb79a; font-size:19px; font-weight:bold; margin:10px 0;">Número de orden: {documento}</p>' if documento else ""
+    documento_texto = f'<p style="color:#6cb79a; font-size:19px; font-weight:bold; margin:15px 0; text-align:center;">Número de orden: {documento}</p>' if documento else ""
     
     html_body = f"""<!DOCTYPE html>
 <html lang="es">
@@ -443,34 +443,33 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
                                 style="display:block; border:none; width:100%; max-width:100%; height:auto;">
                         </td>
                     </tr>
-                    <!-- Saludo al usuario -->
-                    <tr>
-                        <td align="center" style="padding:20px;">
-                            <h1 style="color:#555; font-size:24px; margin:0 0 10px 0; text-align:center;">
-                                Hola, {nombre_cliente}
-                            </h1>
-                            {documento_texto}
-                        </td>
-                    </tr>
                     <!-- Texto principal -->
                     <tr>
-                        <td align="center" style="padding:15px 20px;">
-                            <p style="font-size:18px; color:#2b3352; line-height:1.2; letter-spacing:-0.3px; margin:0; text-align:center;">
-                                En <strong>Grupo Kossodo</strong> nos interesa conocer su experiencia. Sus
-                                comentarios son esenciales para <strong>mejorar la calidad de
-                                nuestro servicio</strong>. Por favor, seleccione cuál de los siguientes
-                                procesos motivó su calificación:
-                            </p>
+                        <td align="center" style="padding:25px 20px 15px 20px;">
+                            <div style="width:80%; margin:0 auto;">
+                                <p style="font-size:18px; color:#2b3352; line-height:1.2; letter-spacing:-0.3px; margin:0; text-align:center;">
+                                    En <strong>Grupo Kossodo</strong> nos interesa conocer su experiencia. Sus
+                                    comentarios son esenciales para <strong>mejorar la calidad de
+                                    nuestro servicio</strong>. Por favor, seleccione cuál de los siguientes
+                                    procesos motivó su calificación:
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Número de orden -->
+                    <tr>
+                        <td align="center" style="padding:0px 20px 15px 20px;">
+                            {documento_texto}
                         </td>
                     </tr>
                     <!-- Botones de feedback específicos para Ventas -->
                     <tr>
                         <td align="center" style="padding:0px 20px 20px 20px;">
-                            <table border="0" cellspacing="10" cellpadding="10" style="margin:0 auto;">
+                            <table border="0" cellspacing="3" cellpadding="5" style="margin:0 auto;">
                                 <tr>
                                     <td>
                                         <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=falta_informacion" 
-                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:16px; margin:5px 0;">
+                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Falta de información sobre servicios
                                         </a>
                                     </td>
@@ -478,7 +477,7 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
                                 <tr>
                                     <td>
                                         <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=demora_respuesta" 
-                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:16px; margin:5px 0;">
+                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Demora en respuesta a consultas
                                         </a>
                                     </td>
@@ -486,7 +485,7 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
                                 <tr>
                                     <td>
                                         <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=presion_venta" 
-                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:16px; margin:5px 0;">
+                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Sensación de presión en la venta
                                         </a>
                                     </td>
@@ -494,7 +493,7 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
                                 <tr>
                                     <td>
                                         <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=incapacidad_resolver" 
-                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:16px; margin:5px 0;">
+                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Incapacidad para resolver dudas
                                         </a>
                                     </td>
@@ -505,11 +504,13 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
                     <!-- Texto de agradecimiento -->
                     <tr>
                         <td align="center" style="padding:20px;">
-                            <p style="font-size:18px; color:#2b3352; line-height:1.2; letter-spacing:-0.3px; margin:0; text-align:center;">
-                                Agradecemos el tiempo dedicado a compartir su
-                                opinión. Sus comentarios serán revisados por nuestro
-                                equipo para optimizar cada etapa de atención.
-                            </p>
+                            <div style="width:80%; margin:0 auto;">
+                                <p style="font-size:18px; color:#2b3352; line-height:1.2; letter-spacing:-0.3px; margin:0; text-align:center;">
+                                    Agradecemos el tiempo dedicado a compartir su
+                                    opinión. Sus comentarios serán revisados por nuestro
+                                    equipo para optimizar cada etapa de atención.
+                                </p>
+                            </div>
                         </td>
                     </tr>
                 </table>
@@ -526,7 +527,7 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
     """Template de email para Operaciones cuando la calificación es baja (1-4)"""
     
     # Preparar texto del documento
-    documento_texto = f'<p style="color:#6cb79a; font-size:19px; font-weight:bold; margin:10px 0;">Número de orden: {documento}</p>' if documento else ""
+    documento_texto = f'<p style="color:#6cb79a; font-size:19px; font-weight:bold; margin:15px 0; text-align:center;">Número de orden: {documento}</p>' if documento else ""
     
     html_body = f"""<!DOCTYPE html>
 <html lang="es">
@@ -550,34 +551,33 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                                 style="display:block; border:none; width:100%; max-width:100%; height:auto;">
                         </td>
                     </tr>
-                    <!-- Saludo al usuario -->
-                    <tr>
-                        <td align="center" style="padding:20px;">
-                            <h1 style="color:#555; font-size:24px; margin:0 0 10px 0; text-align:center;">
-                                Hola, {nombre_cliente}
-                            </h1>
-                            {documento_texto}
-                        </td>
-                    </tr>
                     <!-- Texto principal -->
                     <tr>
-                        <td align="center" style="padding:15px 20px;">
-                            <p style="font-size:18px; color:#2b3352; line-height:1.2; letter-spacing:-0.3px; margin:0; text-align:center;">
-                                En <strong>Grupo Kossodo</strong> nos interesa conocer su experiencia. Sus
-                                comentarios son esenciales para <strong>mejorar la calidad de
-                                nuestro servicio</strong>. Por favor, seleccione cuál de los siguientes
-                                procesos motivó su calificación:
-                            </p>
+                        <td align="center" style="padding:25px 20px 15px 20px;">
+                            <div style="width:80%; margin:0 auto;">
+                                <p style="font-size:18px; color:#2b3352; line-height:1.2; letter-spacing:-0.3px; margin:0; text-align:center;">
+                                    En <strong>Grupo Kossodo</strong> nos interesa conocer su experiencia. Sus
+                                    comentarios son esenciales para <strong>mejorar la calidad de
+                                    nuestro servicio</strong>. Por favor, seleccione cuál de los siguientes
+                                    procesos motivó su calificación:
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Número de orden -->
+                    <tr>
+                        <td align="center" style="padding:0px 20px 15px 20px;">
+                            {documento_texto}
                         </td>
                     </tr>
                     <!-- Botones de feedback específicos para Operaciones -->
                     <tr>
                         <td align="center" style="padding:0px 20px 20px 20px;">
-                            <table border="0" cellspacing="10" cellpadding="10" style="margin:0 auto;">
+                            <table border="0" cellspacing="3" cellpadding="5" style="margin:0 auto;">
                                 <tr>
                                     <td>
                                         <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=comunicacion_deficiente" 
-                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:16px; margin:5px 0;">
+                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Comunicación deficiente para coordinar servicio
                                         </a>
                                     </td>
@@ -585,7 +585,7 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                                 <tr>
                                     <td>
                                         <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=fecha_lejana" 
-                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:16px; margin:5px 0;">
+                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Fecha disponible muy lejana
                                         </a>
                                     </td>
@@ -593,7 +593,7 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                                 <tr>
                                     <td>
                                         <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=incumplimiento_fecha" 
-                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:16px; margin:5px 0;">
+                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Incumplimiento de fecha acordada
                                         </a>
                                     </td>
@@ -601,7 +601,7 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                                 <tr>
                                     <td>
                                         <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=atencion_insatisfactoria" 
-                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:16px; margin:5px 0;">
+                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Atención técnica insatisfactoria
                                         </a>
                                     </td>
@@ -609,7 +609,7 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                                 <tr>
                                     <td>
                                         <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=demora_informes" 
-                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:16px; margin:5px 0;">
+                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Demora en la entrega de informes
                                         </a>
                                     </td>
@@ -617,7 +617,7 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                                 <tr>
                                     <td>
                                         <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=demora_consultas" 
-                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:16px; margin:5px 0;">
+                                           style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Demora en la Respuestas a consultas técnicas
                                         </a>
                                     </td>
@@ -628,11 +628,13 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                     <!-- Texto de agradecimiento -->
                     <tr>
                         <td align="center" style="padding:20px;">
-                            <p style="font-size:18px; color:#2b3352; line-height:1.2; letter-spacing:-0.3px; margin:0; text-align:center;">
-                                Agradecemos el tiempo dedicado a compartir su
-                                opinión. Sus comentarios serán revisados por nuestro
-                                equipo para optimizar cada etapa de atención.
-                            </p>
+                            <div style="width:80%; margin:0 auto;">
+                                <p style="font-size:18px; color:#2b3352; line-height:1.2; letter-spacing:-0.3px; margin:0; text-align:center;">
+                                    Agradecemos el tiempo dedicado a compartir su
+                                    opinión. Sus comentarios serán revisados por nuestro
+                                    equipo para optimizar cada etapa de atención.
+                                </p>
+                            </div>
                         </td>
                     </tr>
                 </table>
