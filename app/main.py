@@ -11,7 +11,7 @@ import ftplib
 try:
     # Intenta importaciones del paquete (para Render/producción)
     from app.db import get_db_connection
-    from app.enviar_encuesta import enviar_encuesta
+    from app.enviar_encuesta import enviar_encuesta, enviar_email_lamentamos
     from app.login import login_bp
     from app.roles_menu import roles_menu_bp
     from app.Mailing.wix import wix_bp
@@ -19,7 +19,7 @@ try:
 except ImportError:
     # Si falla, usa importaciones relativas (para desarrollo con run_app.py)
     from db import get_db_connection
-    from enviar_encuesta import enviar_encuesta
+    from enviar_encuesta import enviar_encuesta, enviar_email_lamentamos
     from login import login_bp
     from roles_menu import roles_menu_bp
     from Mailing.wix import wix_bp
@@ -256,8 +256,49 @@ def encuesta():
         # Calificaciones 8-10: Satisfecho (equivalente a "Bueno")
         
         if calificacion_num <= 4:
-            # Calificación baja - redirigir según el tipo
+            # CALIFICACIÓN BAJA (1-4): Enviar email de lamentamos + redirigir
             tipo_param = (tipo or "").strip()
+            
+            # --- ENVÍO AUTOMÁTICO DE EMAIL DE LAMENTAMOS ---
+            try:
+                # Obtener datos completos del cliente desde la base de datos
+                cursor_datos = cnx.cursor(dictionary=True)
+                query_datos = f"""
+                    SELECT asesor, nombres, correo, documento, tipo, segmento, grupo 
+                    FROM {TABLE_NAME} 
+                    WHERE idcalificacion = %s
+                """
+                cursor_datos.execute(query_datos, (unique_id,))
+                datos_cliente = cursor_datos.fetchone()
+                cursor_datos.close()
+                
+                if datos_cliente:
+                    # Generar número de consulta
+                    numero_consulta = f"CONS-{unique_id:06d}"
+                    
+                    # Enviar email de lamentamos automáticamente
+                    print(f"📧 Enviando email de lamentamos automático para calificación {calificacion_num}")
+                    resultado_email, codigo_email = enviar_email_lamentamos(
+                        nombre_cliente=datos_cliente['nombres'],
+                        correo_cliente=datos_cliente['correo'],
+                        numero_consulta=numero_consulta,
+                        tipo=datos_cliente['tipo'] or tipo_param,
+                        documento=datos_cliente['documento']
+                    )
+                    
+                    if codigo_email == 200:
+                        print(f"✅ Email de lamentamos enviado exitosamente: {resultado_email['message']}")
+                    else:
+                        print(f"⚠️  Error enviando email de lamentamos: {resultado_email['message']}")
+                        
+                else:
+                    print(f"⚠️  No se encontraron datos del cliente para unique_id: {unique_id}")
+                    
+            except Exception as e:
+                print(f"❌ Error enviando email de lamentamos automático: {e}")
+                # Continuamos con la redirección aunque falle el email
+            
+            # --- REDIRECCIÓN SEGÚN EL TIPO (como antes) ---
             if tipo_param in ["Ventas", "Ventas (OT)", "Ventas (OC)"]:
                 # Redirige a la página de lamentación para Ventas
                 return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta_lamentamos_ventas.html?unique_id={unique_id}")
