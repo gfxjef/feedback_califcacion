@@ -449,8 +449,8 @@ def guardar_feedback_especifico():
         cursor.execute(update_query, (observaciones_nuevas, unique_id))
         cnx.commit()
 
-        # Redirigir a página de agradecimiento por feedback específico
-        return redirect(f"https://kossodo.estilovisual.com/kossomet/califacion/paginas/feedback-registrado.html?unique_id={unique_id}")
+        # Redirigir a página de agradecimiento final por feedback específico
+        return redirect("https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta-gracias_final.html")
 
     except mysql.connector.Error as err:
         print(f"Error al guardar feedback específico: {err}")
