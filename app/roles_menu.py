@@ -1,6 +1,12 @@
 from flask import Blueprint, request, jsonify
 from mysql.connector import Error
-from db import get_db_connection
+
+try:
+    # Importaciones del paquete app (para Render/producción)
+    from app.db import get_db_connection
+except ImportError:
+    # Importaciones relativas (para desarrollo con run_app.py)
+    from db import get_db_connection
 
 TABLE_NAME = "roles_menu"
 roles_menu_bp = Blueprint('roles_menu_bp', __name__)

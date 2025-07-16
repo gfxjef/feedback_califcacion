@@ -1,6 +1,13 @@
 from flask import Blueprint, request, jsonify
-from db import get_db_connection  # Ajusta si db.py está en el mismo paquete
-from Mailing.octopus import add_contact_to_octopus
+
+try:
+    # Importaciones del paquete app (para Render/producción)
+    from app.db import get_db_connection
+    from app.Mailing.octopus import add_contact_to_octopus
+except ImportError:
+    # Importaciones relativas (para desarrollo con run_app.py)
+    from db import get_db_connection
+    from Mailing.octopus import add_contact_to_octopus
 
 wix_bp = Blueprint('wix_bp', __name__)
 TABLE_NAME = "WIX"  # Nombre exacto de la tabla en tu BD

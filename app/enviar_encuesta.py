@@ -2,11 +2,20 @@ import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from templates_email import (
-    get_email_template_ventas, 
-    get_email_template_operaciones, 
-    get_email_template_coordinador
-)
+try:
+    # Importaciones del paquete app (para Render/producción)
+    from app.templates_email import (
+        get_email_template_ventas, 
+        get_email_template_operaciones, 
+        get_email_template_coordinador
+    )
+except ImportError:
+    # Importaciones relativas (para desarrollo con run_app.py)
+    from templates_email import (
+        get_email_template_ventas, 
+        get_email_template_operaciones, 
+        get_email_template_coordinador
+    )
 
 def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta, tipo, documento=None):
     """
