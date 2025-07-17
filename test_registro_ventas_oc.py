@@ -14,7 +14,7 @@ def test_registro_ventas_oc():
     """
     
     # URL del endpoint
-    url = "http://192.168.18.26:3000/submit"
+    url = "http://192.168.110.102:3000/submit"
     
     # Datos de prueba para Ventas (OC)
     datos_prueba = {
@@ -22,7 +22,7 @@ def test_registro_ventas_oc():
         "nombres": "Maria Elena Rodriguez Gutierrez", 
         "ruc": "10480528501",
         "correo": "gfxjef@gmail.com",   
-        "tipo": "Coordinador (Conformidad)",
+        "tipo": "Ventas (OT)",
         "grupo": "kossomet",
         "documento": "OC-2024-0012wdwdwd34"
     }
@@ -66,7 +66,7 @@ def test_registro_ventas_oc():
             
     except requests.exceptions.ConnectionError:
         print("❌ ERROR: No se puede conectar al servidor")
-        print("   Verificar que el servidor esté corriendo en http://192.168.18.26:3000")
+        print("   Verificar que el servidor esté corriendo en http://192.168.110.102:3000:3000")
     except requests.exceptions.Timeout:
         print("❌ ERROR: Timeout en la conexión")
     except Exception as e:
@@ -79,7 +79,7 @@ def test_campos_requeridos():
     """
     Prueba validaciones de campos requeridos
     """
-    url = "http://192.168.18.26:3000/submit"
+    url = "http://192.168.110.102:3000/submit"
     
     print("\n🔍 PRUEBA DE VALIDACIONES")
     print("=" * 30)

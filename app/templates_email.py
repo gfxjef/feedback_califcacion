@@ -130,6 +130,14 @@ def get_email_template_ventas(nombre_cliente, documento, base_url, unique_id, ti
                             </table>
                         </td>
                     </tr>
+                    <!-- Footer legal -->
+                    <tr>
+                        <td align="center" style="padding:20px 15px 15px 15px; border-top:1px solid #e0e0e0;">
+                            <p style="font-size:11px; color:#999999; line-height:1.4; margin:0; text-align:center;">
+                                Este correo ha sido enviado automáticamente por nuestro sistema. La información proporcionada será empleada exclusivamente para optimizar nuestra atención y canales de comunicación. Sus comentarios serán tratados con estricta confidencialidad y no compartidos con terceros sin su autorización. Por favor, no responda a este mensaje; no es monitoreado. Si requiere asistencia adicional, contáctenos en info@kossodo.com.
+                            </p>
+                        </td>
+                    </tr>
                 </table>
             </td>
         </tr>
@@ -266,6 +274,14 @@ def get_email_template_operaciones(nombre_cliente, documento, base_url, unique_i
                                     </td>
                                 </tr>
                             </table>
+                        </td>
+                    </tr>
+                    <!-- Footer legal -->
+                    <tr>
+                        <td align="center" style="padding:20px 15px 15px 15px; border-top:1px solid #e0e0e0;">
+                            <p style="font-size:11px; color:#999999; line-height:1.4; margin:0; text-align:center;">
+                                Este correo ha sido enviado automáticamente por nuestro sistema. La información proporcionada será empleada exclusivamente para optimizar nuestra atención y canales de comunicación. Sus comentarios serán tratados con estricta confidencialidad y no compartidos con terceros sin su autorización. Por favor, no responda a este mensaje; no es monitoreado. Si requiere asistencia adicional, contáctenos en info@kossodo.com.
+                            </p>
                         </td>
                     </tr>
                 </table>
@@ -415,6 +431,14 @@ def get_email_template_coordinador(nombre_cliente, documento, base_url, unique_i
                             </table>
                         </td>
                     </tr>
+                    <!-- Footer legal -->
+                    <tr>
+                        <td align="center" style="padding:20px 15px 15px 15px; border-top:1px solid #e0e0e0;">
+                            <p style="font-size:11px; color:#999999; line-height:1.4; margin:0; text-align:center;">
+                                Este correo ha sido enviado automáticamente por nuestro sistema. La información proporcionada será empleada exclusivamente para optimizar nuestra atención y canales de comunicación. Sus comentarios serán tratados con estricta confidencialidad y no compartidos con terceros sin su autorización. Por favor, no responda a este mensaje; no es monitoreado. Si requiere asistencia adicional, contáctenos en info@kossodo.com.
+                            </p>
+                        </td>
+                    </tr>
                 </table>
             </td>
         </tr>
@@ -521,6 +545,14 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
                                     equipo para optimizar cada etapa de atención.
                                 </p>
                             </div>
+                        </td>
+                    </tr>
+                    <!-- Footer legal -->
+                    <tr>
+                        <td align="center" style="padding:20px 15px 15px 15px; border-top:1px solid #e0e0e0;">
+                            <p style="font-size:11px; color:#999999; line-height:1.4; margin:0; text-align:center;">
+                                Este correo ha sido enviado automáticamente por nuestro sistema. La información proporcionada será empleada exclusivamente para optimizar nuestra atención y canales de comunicación. Sus comentarios serán tratados con estricta confidencialidad y no compartidos con terceros sin su autorización. Por favor, no responda a este mensaje; no es monitoreado. Si requiere asistencia adicional, contáctenos en info@kossodo.com.
+                            </p>
                         </td>
                     </tr>
                 </table>
@@ -645,6 +677,14 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                                     equipo para optimizar cada etapa de atención.
                                 </p>
                             </div>
+                        </td>
+                    </tr>
+                    <!-- Footer legal -->
+                    <tr>
+                        <td align="center" style="padding:20px 15px 15px 15px; border-top:1px solid #e0e0e0;">
+                            <p style="font-size:11px; color:#999999; line-height:1.4; margin:0; text-align:center;">
+                                Este correo ha sido enviado automáticamente por nuestro sistema. La información proporcionada será empleada exclusivamente para optimizar nuestra atención y canales de comunicación. Sus comentarios serán tratados con estricta confidencialidad y no compartidos con terceros sin su autorización. Por favor, no responda a este mensaje; no es monitoreado. Si requiere asistencia adicional, contáctenos en info@kossodo.com.
+                            </p>
                         </td>
                     </tr>
                 </table>
