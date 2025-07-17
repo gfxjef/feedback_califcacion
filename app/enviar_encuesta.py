@@ -104,7 +104,7 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta, tip
 
 def enviar_email_lamentamos(nombre_cliente, correo_cliente, numero_consulta, tipo, documento=None):
     """
-    Envía un email de lamentamos cuando la calificación es baja (1-4).
+    Envía un email de lamentamos cuando la calificación es baja (1-3).
     Se envía automáticamente al recibir una calificación insatisfactoria.
     """
     # Validaciones básicas

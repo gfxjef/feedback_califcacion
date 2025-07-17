@@ -251,12 +251,12 @@ def encuesta():
         cnx.commit()
 
         # Lógica de redirección según la nueva escala numérica
-        # Calificaciones 1-4: Insatisfecho (equivalente a "Malo")
-        # Calificaciones 5-7: Regular 
+        # Calificaciones 1-3: Insatisfecho (equivalente a "Malo") - Email de lamentamos
+        # Calificaciones 4-7: Regular 
         # Calificaciones 8-10: Satisfecho (equivalente a "Bueno")
         
-        if calificacion_num <= 4:
-            # CALIFICACIÓN BAJA (1-4): Enviar email de lamentamos + redirigir
+        if calificacion_num <= 3:
+            # CALIFICACIÓN BAJA (1-3): Enviar email de lamentamos + redirigir
             tipo_param = (tipo or "").strip()
             
             # --- ENVÍO AUTOMÁTICO DE EMAIL DE LAMENTAMOS ---
@@ -389,7 +389,7 @@ def segmento_imagenes():
 
 @app.route('/feedback_especifico', methods=['GET'])
 def guardar_feedback_especifico():
-    """Endpoint para guardar feedback específico cuando la calificación es baja (1-4)"""
+    """Endpoint para guardar feedback específico cuando la calificación es baja (1-3)"""
     unique_id = request.args.get('unique_id')
     tipo = request.args.get('tipo')
     motivo = request.args.get('motivo')

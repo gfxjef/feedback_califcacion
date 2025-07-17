@@ -450,7 +450,7 @@ def get_email_template_coordinador(nombre_cliente, documento, base_url, unique_i
 
 
 def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, unique_id, tipo):
-    """Template de email para Ventas cuando la calificación es baja (1-4)"""
+    """Template de email para Ventas cuando la calificación es baja (1-3)"""
     
     # Preparar texto del documento
     documento_texto = f'<p style="color:#6cb79a; font-size:19px; font-weight:bold; margin:15px 0; text-align:center;">Número de orden de trabajo: {documento}</p>' if documento else ""
@@ -566,7 +566,7 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
 
 
 def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_url, unique_id, tipo):
-    """Template de email para Operaciones cuando la calificación es baja (1-4)"""
+    """Template de email para Operaciones cuando la calificación es baja (1-3)"""
     
     # Preparar texto del documento
     documento_texto = f'<p style="color:#6cb79a; font-size:19px; font-weight:bold; margin:15px 0; text-align:center;">Número de orden: {documento}</p>' if documento else ""
