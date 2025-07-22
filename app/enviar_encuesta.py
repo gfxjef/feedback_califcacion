@@ -38,19 +38,19 @@ def enviar_encuesta(nombre_cliente, correo_cliente, asesor, numero_consulta, tip
     # -------------------------------------------------------------------------
 
     # --- FILTRO DE TESTING: Solo enviar emails a gfxjef@gmail.com ---
-    EMAIL_TESTING = "gfxjef@gmail.com"
+    # EMAIL_TESTING = "gfxjef@gmail.com"
     
     # Verificar si algún email en la lista es el email de testing
-    emails_validos_testing = [email for email in email_list if email.lower() == EMAIL_TESTING.lower()]
+    # emails_validos_testing = [email for email in email_list if email.lower() == EMAIL_TESTING.lower()]
     
-    if not emails_validos_testing:
-        # Si ningún email es de testing, simular envío exitoso sin enviar realmente
-        print(f"🚧 MODO TESTING: Email NO enviado a {correo_cliente} (solo se envía a {EMAIL_TESTING})")
-        return {'status': 'ok', 'message': f'Email simulado correctamente (modo testing - solo se envía a {EMAIL_TESTING})'}, 200
-    else:
-        # Solo procesar el email de testing
-        email_list = emails_validos_testing
-        print(f"✅ MODO TESTING: Email SÍ se enviará a {EMAIL_TESTING}")
+    # if not emails_validos_testing:
+    #     # Si ningún email es de testing, simular envío exitoso sin enviar realmente
+    #     print(f"🚧 MODO TESTING: Email NO enviado a {correo_cliente} (solo se envía a {EMAIL_TESTING})")
+    #     return {'status': 'ok', 'message': f'Email simulado correctamente (modo testing - solo se envía a {EMAIL_TESTING})'}, 200
+    # else:
+    #     # Solo procesar el email de testing
+    #     email_list = emails_validos_testing
+    #     print(f"✅ MODO TESTING: Email SÍ se enviará a {EMAIL_TESTING}")
     # -------------------------------------------------------------------------
 
     # Extraer el unique_id desde el número de consulta (ej: "CONS-000123")
@@ -124,15 +124,15 @@ def enviar_email_lamentamos(nombre_cliente, correo_cliente, numero_consulta, tip
                 return {'status': 'ok', 'message': 'No se envió email de lamentamos para correos internos'}, 200
 
     # --- FILTRO DE TESTING: Solo enviar emails a gfxjef@gmail.com ---
-    EMAIL_TESTING = "gfxjef@gmail.com"
-    emails_validos_testing = [email for email in email_list if email.lower() == EMAIL_TESTING.lower()]
+    # EMAIL_TESTING = "gfxjef@gmail.com"
+    # emails_validos_testing = [email for email in email_list if email.lower() == EMAIL_TESTING.lower()]
     
-    if not emails_validos_testing:
-        print(f"🚧 MODO TESTING: Email de lamentamos NO enviado a {correo_cliente} (solo se envía a {EMAIL_TESTING})")
-        return {'status': 'ok', 'message': f'Email de lamentamos simulado correctamente (modo testing - solo se envía a {EMAIL_TESTING})'}, 200
-    else:
-        email_list = emails_validos_testing
-        print(f"✅ MODO TESTING: Email de lamentamos SÍ se enviará a {EMAIL_TESTING}")
+    # if not emails_validos_testing:
+    #     print(f"🚧 MODO TESTING: Email de lamentamos NO enviado a {correo_cliente} (solo se envía a {EMAIL_TESTING})")
+    #     return {'status': 'ok', 'message': f'Email de lamentamos simulado correctamente (modo testing - solo se envía a {EMAIL_TESTING})'}, 200
+    # else:
+    #     email_list = emails_validos_testing
+    #     print(f"✅ MODO TESTING: Email de lamentamos SÍ se enviará a {EMAIL_TESTING}")
 
     # --- GENERAR TEMPLATE SEGÚN TIPO DE SERVICIO ---
     unique_id = numero_consulta.replace("CONS-", "")
