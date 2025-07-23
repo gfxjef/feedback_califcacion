@@ -412,6 +412,13 @@ def guardar_feedback_especifico():
         if not row:
             return jsonify({'status': 'error', 'message': 'No se encontró el registro con ese unique_id.'}), 404
 
+        # --- VALIDACIÓN: Verificar si ya existe feedback específico ---
+        observaciones_actual = row['observaciones'] or ""
+        if "Feedback específico:" in observaciones_actual:
+            # Si ya existe feedback específico, redirigir a "ya respondida"
+            return redirect("https://kossodo.estilovisual.com/kossomet/califacion/paginas/encuesta-ya-respondida.html")
+        # -------------------------------------------------------------------------
+
         # Preparar el texto del motivo según el tipo y motivo recibidos
         motivos_textos = {
             'ventas': {
@@ -436,14 +443,9 @@ def guardar_feedback_especifico():
         # Obtener el texto del motivo
         texto_motivo = motivos_textos.get(tipo_normalizado, {}).get(motivo, f"Motivo no especificado: {motivo}")
         
-        # Actualizar las observaciones con el feedback específico
-        observaciones_actual = row['observaciones'] or ""
+        # Actualizar las observaciones con el feedback específico (solo una vez)
         nuevo_feedback = f"Feedback específico: {texto_motivo}"
-        
-        if observaciones_actual:
-            observaciones_nuevas = f"{observaciones_actual}, {nuevo_feedback}"
-        else:
-            observaciones_nuevas = nuevo_feedback
+        observaciones_nuevas = nuevo_feedback
             
         update_query = f"UPDATE {TABLE_NAME} SET observaciones = %s WHERE idcalificacion = %s"
         cursor.execute(update_query, (observaciones_nuevas, unique_id))
