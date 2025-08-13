@@ -31,7 +31,8 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": [
     "https://atusaludlicoreria.com",
     "https://kossodo.estilovisual.com",
-    "https://www.kossodo.com"
+    "https://www.kossodo.com",
+    "https://www.kossomet.com"
 ]}})
 
 TABLE_NAME = "envio_de_encuestas"

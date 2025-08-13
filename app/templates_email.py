@@ -44,7 +44,7 @@ def get_email_template_ventas(nombre_cliente, documento, base_url, unique_id, ti
                     <!-- Imagen Opinión Importante -->
                     <tr>
                         <td align="center" style="padding:5px;">
-                            <img src="http://atusaludlicoreria.com/feedback/opinion_importante.jpg"
+                            <img src="https://www.kossomet.com/AppUp/feedback/opinion_importante.jpg"
                                  alt="Opinión Importante"
                                  style="display:block; border:none; width:auto; max-width:100%; height:auto;">
                         </td>
@@ -82,7 +82,7 @@ def get_email_template_ventas(nombre_cliente, documento, base_url, unique_id, ti
         html_body += f"""
                                     <td style="padding:1px;">
                                         <a href="{link}" target="_blank" style="text-decoration:none;">
-                                            <img src="https://atusaludlicoreria.com/feedback/{i}.jpg" 
+                                            <img src="https://www.kossomet.com/AppUp/feedback/{i}.jpg" 
                                                  alt="Calificación {i}" 
                                                  title="Calificación {i}"
                                                  style="display:block; border:none; width:auto; height:auto; max-width:45px;">
@@ -190,7 +190,7 @@ def get_email_template_operaciones(nombre_cliente, documento, base_url, unique_i
                     <!-- Imagen Opinión Importante -->
                     <tr>
                         <td align="center" style="padding:5px;">
-                            <img src="http://atusaludlicoreria.com/feedback/opinion_importante.jpg"
+                            <img src="https://www.kossomet.com/AppUp/feedback/opinion_importante.jpg"
                                  alt="Opinión Importante"
                                  style="display:block; border:none; width:auto; max-width:100%; height:auto;">
                         </td>
@@ -228,7 +228,7 @@ def get_email_template_operaciones(nombre_cliente, documento, base_url, unique_i
         html_body += f"""
                                     <td style="padding:1px;">
                                         <a href="{link}" target="_blank" style="text-decoration:none;">
-                                            <img src="https://atusaludlicoreria.com/feedback/{i}.jpg" 
+                                            <img src="https://www.kossomet.com/AppUp/feedback/{i}.jpg" 
                                                  alt="Calificación {i}" 
                                                  title="Calificación {i}"
                                                  style="display:block; border:none; width:auto; height:auto; max-width:45px;">
@@ -336,7 +336,7 @@ def get_email_template_coordinador(nombre_cliente, documento, base_url, unique_i
                     <!-- Imagen Opinión Importante -->
                     <tr>
                         <td align="center" style="padding:5px;">
-                            <img src="http://atusaludlicoreria.com/feedback/opinion_importante.jpg"
+                            <img src="https://www.kossomet.com/AppUp/feedback/opinion_importante.jpg"
                                  alt="Opinión Importante"
                                  style="display:block; border:none; width:auto; max-width:100%; height:auto;">
                         </td>
@@ -383,7 +383,7 @@ def get_email_template_coordinador(nombre_cliente, documento, base_url, unique_i
         html_body += f"""
                                     <td style="padding:1px;">
                                         <a href="{link}" target="_blank" style="text-decoration:none;">
-                                            <img src="https://atusaludlicoreria.com/feedback/{i}.jpg" 
+                                            <img src="https://www.kossomet.com/AppUp/feedback/{i}.jpg" 
                                                  alt="Calificación {i}" 
                                                  title="Calificación {i}"
                                                  style="display:block; border:none; width:auto; height:auto; max-width:45px;">
@@ -472,7 +472,7 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
                     <!-- Encabezado con imagen -->
                     <tr>
                         <td style="padding:0; margin:0;" align="center">
-                            <img src="https://atusaludlicoreria.com/feedback/calif_reg.jpg"
+                            <img src="https://www.kossomet.com/AppUp/feedback/calif_reg.jpg"
                                 alt="Header"
                                 style="display:block; border:none; width:100%; max-width:100%; height:auto;">
                         </td>
@@ -588,7 +588,7 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                     <!-- Encabezado con imagen -->
                     <tr>
                         <td style="padding:0; margin:0;" align="center">
-                            <img src="https://atusaludlicoreria.com/feedback/calif_reg.jpg"
+                            <img src="https://www.kossomet.com/AppUp/feedback/calif_reg.jpg"
                                 alt="Header"
                                 style="display:block; border:none; width:100%; max-width:100%; height:auto;">
                         </td>
