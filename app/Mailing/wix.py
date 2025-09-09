@@ -1,12 +1,13 @@
 from flask import Blueprint, request, jsonify
-import requests
 
 try:
     # Importaciones del paquete app (para Render/producción)
     from app.db import get_db_connection
+    from app.Mailing.octopus import add_contact_to_octopus
 except ImportError:
     # Importaciones relativas (para desarrollo con run_app.py)
     from db import get_db_connection
+    from Mailing.octopus import add_contact_to_octopus
 
 wix_bp = Blueprint('wix_bp', __name__)
 TABLE_NAME = "WIX"  # Nombre exacto de la tabla en tu BD
@@ -37,11 +38,7 @@ def get_records():
 def insert_record():
     """
     POST /wix/records
-    Endpoint orquestador para WIX.
-    Recibe datos desde WIX y los envía a los endpoints independientes:
-    1. BD endpoint (con origen="WIX")
-    2. EmailOctopus endpoint
-    
+    Inserta un nuevo registro en la tabla WIX con origen="WIX".
     Espera un JSON con:
       - nombre_apellido
       - empresa
@@ -49,6 +46,9 @@ def insert_record():
       - ruc_dni
       - correo
       - treq_requerimiento
+    Luego, se envía el contacto a EmailOctopus.
+    
+    La columna submission_time se asigna automáticamente con el timestamp actual.
     """
     data = request.get_json()
     if not data:
@@ -67,72 +67,56 @@ def insert_record():
         if field not in data:
             return jsonify({'status': 'error', 'message': f'Falta el campo {field}.'}), 400
 
-    # Preparar datos para BD con origen WIX
-    bd_data = data.copy()
-    bd_data["origen"] = "WIX"
-    
-    # Variables para tracking de resultados
-    bd_success = False
-    octopus_success = False
-    bd_response = None
-    octopus_response = None
+    cnx = get_db_connection()
+    if cnx is None:
+        return jsonify({'status': 'error', 'message': 'No se pudo conectar a la base de datos.'}), 500
 
-    # 1. Enviar a BD endpoint
     try:
-        bd_url = request.host_url + "bd/records"
-        bd_response = requests.post(bd_url, json=bd_data, headers={'Content-Type': 'application/json'})
-        if bd_response.status_code == 201:
-            bd_success = True
-            print(f"✅ BD: Datos guardados exitosamente con origen WIX")
-        else:
-            print(f"⚠️  BD: Error al guardar - Status {bd_response.status_code}: {bd_response.text}")
-    except Exception as e:
-        print(f"❌ BD: Error de conexión - {str(e)}")
+        cursor = cnx.cursor()
+        
+        # Agregar columna origen si no existe
+        try:
+            add_origen_query = f"""
+                ALTER TABLE `{TABLE_NAME}` 
+                ADD COLUMN origen VARCHAR(50) DEFAULT 'UNKNOWN' AFTER treq_requerimiento;
+            """
+            cursor.execute(add_origen_query)
+            cnx.commit()
+        except Exception:
+            # La columna ya existe, continuar
+            pass
+        
+        # Se agrega NOW() para que submission_time reciba la fecha y hora exacta
+        insert_query = f"""
+            INSERT INTO `{TABLE_NAME}` 
+            (nombre_apellido, empresa, telefono2, ruc_dni, correo, treq_requerimiento, origen, submission_time)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, NOW());
+        """
+        values = (
+            data["nombre_apellido"],
+            data["empresa"],
+            data["telefono2"],
+            data["ruc_dni"],
+            data["correo"],
+            data["treq_requerimiento"],
+            "WIX"  # Origen fijo para WIX
+        )
+        cursor.execute(insert_query, values)
+        cnx.commit()
 
-    # 2. Enviar a EmailOctopus endpoint
-    try:
-        octopus_url = request.host_url + "octopus/contacts"
-        octopus_data = {
-            "correo": data["correo"],
-            "nombre_apellido": data["nombre_apellido"],
-            "empresa": data["empresa"],
-            "ruc_dni": data["ruc_dni"]
-        }
-        octopus_response = requests.post(octopus_url, json=octopus_data, headers={'Content-Type': 'application/json'})
-        if octopus_response.status_code == 200:
-            octopus_success = True
-            print(f"✅ EmailOctopus: Contacto enviado exitosamente")
-        else:
-            print(f"⚠️  EmailOctopus: Error al enviar - Status {octopus_response.status_code}: {octopus_response.text}")
-    except Exception as e:
-        print(f"❌ EmailOctopus: Error de conexión - {str(e)}")
+        # Llamada a la función para enviar el contacto a EmailOctopus
+        oct_response = add_contact_to_octopus(
+            email_address=data["correo"],
+            nombre_apellido=data["nombre_apellido"],
+            empresa=data["empresa"],
+            ruc_dni=data["ruc_dni"]
+        )
+        if oct_response.status_code not in [200, 201]:
+            print("Error al agregar el contacto a Octopus:", oct_response.text)
 
-    # Preparar respuesta basada en resultados
-    if bd_success and octopus_success:
-        return jsonify({
-            'status': 'success', 
-            'message': 'Datos procesados exitosamente en BD y EmailOctopus.',
-            'bd_success': True,
-            'octopus_success': True
-        }), 201
-    elif bd_success and not octopus_success:
-        return jsonify({
-            'status': 'partial_success', 
-            'message': 'Datos guardados en BD, pero falló envío a EmailOctopus.',
-            'bd_success': True,
-            'octopus_success': False
-        }), 201
-    elif not bd_success and octopus_success:
-        return jsonify({
-            'status': 'partial_success', 
-            'message': 'Datos enviados a EmailOctopus, pero falló guardado en BD.',
-            'bd_success': False,
-            'octopus_success': True
-        }), 201
-    else:
-        return jsonify({
-            'status': 'error', 
-            'message': 'Error al procesar datos tanto en BD como en EmailOctopus.',
-            'bd_success': False,
-            'octopus_success': False
-        }), 500
+        return jsonify({'status': 'success', 'message': 'Registro insertado correctamente.'}), 201
+    except Exception as err:
+        return jsonify({'status': 'error', 'message': str(err)}), 500
+    finally:
+        cursor.close()
+        cnx.close()
