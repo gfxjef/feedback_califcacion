@@ -15,6 +15,8 @@ try:
     from app.login import login_bp
     from app.roles_menu import roles_menu_bp
     from app.Mailing.wix import wix_bp
+    from app.Mailing.octopus_endpoints import octopus_bp
+    from app.bd_endpoints import bd_bp
     from app.records import records_bp
 except ImportError:
     # Si falla, usa importaciones relativas (para desarrollo con run_app.py)
@@ -23,6 +25,8 @@ except ImportError:
     from login import login_bp
     from roles_menu import roles_menu_bp
     from Mailing.wix import wix_bp
+    from Mailing.octopus_endpoints import octopus_bp
+    from bd_endpoints import bd_bp
     from records import records_bp
 
 app = Flask(__name__)
@@ -468,6 +472,8 @@ def guardar_feedback_especifico():
 app.register_blueprint(login_bp)
 app.register_blueprint(roles_menu_bp)
 app.register_blueprint(wix_bp, url_prefix='/wix')
+app.register_blueprint(octopus_bp, url_prefix='/octopus')
+app.register_blueprint(bd_bp, url_prefix='/bd')
 app.register_blueprint(records_bp)  # Registrar el blueprint de records
 
 
