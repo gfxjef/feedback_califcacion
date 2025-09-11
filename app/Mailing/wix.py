@@ -4,10 +4,12 @@ try:
     # Importaciones del paquete app (para Render/producción)
     from app.db import get_db_connection
     from app.Mailing.octopus import add_contact_to_octopus
+    from app.Mailing.send_lead_notification import send_lead_notification_email
 except ImportError:
     # Importaciones relativas (para desarrollo con run_app.py)
     from db import get_db_connection
     from Mailing.octopus import add_contact_to_octopus
+    from Mailing.send_lead_notification import send_lead_notification_email
 
 wix_bp = Blueprint('wix_bp', __name__)
 TABLE_NAME = "WIX"  # Nombre exacto de la tabla en tu BD
@@ -113,6 +115,33 @@ def insert_record():
         )
         if oct_response.status_code not in [200, 201]:
             print("Error al agregar el contacto a Octopus:", oct_response.text)
+
+        # NUEVA FUNCIONALIDAD: Enviar notificación de lead solo si es WIX
+        try:
+            # Preparar datos del lead para la notificación
+            lead_notification_data = {
+                'nombre_apellido': data["nombre_apellido"],
+                'empresa': data["empresa"],
+                'telefono2': data["telefono2"],
+                'correo': data["correo"],
+                'ruc_dni': data["ruc_dni"],
+                'treq_requerimiento': data["treq_requerimiento"],
+                'origen': "WIX",  # Siempre WIX para este endpoint
+                'submission_time': 'Recién registrado'  # Se podría mejorar con timestamp real
+            }
+            
+            # Enviar notificación (solo si origen=WIX, que es siempre true aquí)
+            notification_result, notification_status = send_lead_notification_email(lead_notification_data)
+            
+            if notification_result['status'] == 'ok':
+                print(f"✅ Notificación de lead WIX enviada: {notification_result['message']}")
+            elif notification_result['status'] == 'error':
+                print(f"❌ Error en notificación de lead: {notification_result['message']}")
+            # Si es 'skipped', no se imprime nada (aunque no debería pasar aquí)
+                
+        except Exception as notification_error:
+            # Error en notificación no debe afectar el flujo principal
+            print(f"⚠️ Error al enviar notificación de lead WIX: {notification_error}")
 
         return jsonify({'status': 'success', 'message': 'Registro insertado correctamente.'}), 201
     except Exception as err:

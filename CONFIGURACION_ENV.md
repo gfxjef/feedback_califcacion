@@ -36,6 +36,11 @@ OCTOPUS_API_KEY=eo_ebaaa54ce54b71a8f43cf0f717834982c846dca447245f0dff1cb5880f57e
 OCTOPUS_LIST_ID=4de8d66a-71ea-11ee-b78c-d7b693f1ca1a
 
 # ==============================================
+# CONFIGURACIÓN DE NOTIFICACIONES DE LEADS
+# ==============================================
+LEAD_NOTIFICATION_EMAIL=encargada@kossodo.com
+
+# ==============================================
 # OTRAS CONFIGURACIONES OPCIONALES
 # ==============================================
 PORT=3000
@@ -108,6 +113,32 @@ Para probar que todo funciona:
    📧 Email: jcamacho@kossodo.com
    ```
 
+## 🆕 **NUEVA FUNCIONALIDAD: NOTIFICACIONES DE LEADS WIX**
+
+### **¿Qué hace?**
+- 📧 Envía email automático a la encargada cuando llega un nuevo lead desde WIX
+- ⚡ Solo se ejecuta si `origen="WIX"` 
+- 🔄 No afecta el flujo normal de otros orígenes
+- 📋 Incluye toda la información del cliente (nombre, empresa, teléfono, email, requerimiento)
+
+### **Configuración Requerida**
+Agregar al archivo `.env`:
+```env
+LEAD_NOTIFICATION_EMAIL=encargada@kossodo.com
+```
+
+### **Flujo de Trabajo**
+1. **Cliente llena formulario WIX** → POST `/wix/records`
+2. **Sistema guarda en BD** → tabla WIX con `origen="WIX"`
+3. **Sistema envía a EmailOctopus** → marketing list
+4. **🆕 Sistema envía notificación** → email a encargada de leads
+5. **Encargada asigna lead** → al asesor correspondiente
+
+### **Archivos Agregados**
+- `app/Mailing/lead_notification_template.py` - Template HTML profesional
+- `app/Mailing/send_lead_notification.py` - Lógica de envío
+- Modificado: `app/Mailing/wix.py` - Integración automática
+
 ## 🔗 **PRÓXIMOS PASOS**
 
 Una vez configurado el `.env`:
@@ -115,5 +146,6 @@ Una vez configurado el `.env`:
 - ✅ Emails de lamentamos seguirán enviándose
 - ✅ Templates modificados estarán activos
 - ✅ Redirect a `encuesta-gracias_final.html` funcionará
+- ✅ **NUEVO**: Notificaciones automáticas de leads WIX
 
 **¡Todo el sistema está listo para funcionar de forma segura sin credenciales hardcodeadas!** 
