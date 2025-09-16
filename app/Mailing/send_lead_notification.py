@@ -13,27 +13,26 @@ except ImportError:
 
 def send_lead_notification_email(lead_data):
     """
-    Envía notificación por email cuando se recibe un nuevo lead WIX.
-    Solo se ejecuta si origen="WIX".
-    
+    Envía notificación por email cuando se recibe un nuevo lead.
+    Funciona para cualquier origen - la lógica de cuándo enviar se controla desde el endpoint.
+
     Args:
         lead_data (dict): Datos del lead con campos:
             - nombre_apellido
-            - empresa  
+            - empresa
             - telefono2
             - correo
             - ruc_dni
             - treq_requerimiento
             - origen
             - submission_time (opcional)
-    
+
     Returns:
         dict: {'status': 'ok/error', 'message': str}, int (status_code)
     """
     
-    # Verificar que es un lead WIX
-    if lead_data.get('origen') != 'WIX':
-        return {'status': 'skipped', 'message': 'No es un lead WIX, notificación omitida'}, 200
+    # Notificación disponible para cualquier origen
+    # La lógica de cuándo enviar se controla desde el endpoint que llama esta función
     
     # Verificar configuración de email
     sender_email = os.environ.get('EMAIL_USER')
@@ -56,7 +55,7 @@ def send_lead_notification_email(lead_data):
         
         # Configurar el mensaje
         msg = MIMEMultipart('alternative')
-        msg['Subject'] = f"🌟 Nuevo Lead WIX: {lead_data['nombre_apellido']} - {lead_data['empresa']}"
+        msg['Subject'] = f"🌟 Nuevo Lead ({lead_data.get('origen', 'UNKNOWN')}): {lead_data['nombre_apellido']} - {lead_data['empresa']}"
         msg['From'] = "Sistema Kossodo <jcamacho@kossodo.com>"
         msg['To'] = notification_email
         
@@ -74,7 +73,7 @@ def send_lead_notification_email(lead_data):
         server.sendmail(sender_email, [notification_email], msg.as_string())
         server.quit()
         
-        print(f"✅ Notificación de lead WIX enviada a {notification_email}")
+        print(f"✅ Notificación de lead {lead_data.get('origen', 'UNKNOWN')} enviada a {notification_email}")
         return {'status': 'ok', 'message': f'Notificación enviada correctamente a {notification_email}'}, 200
         
     except Exception as e:

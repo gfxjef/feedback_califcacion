@@ -89,18 +89,35 @@ Obtiene todos los registros de la base de datos (tabla WIX) incluyendo todos los
 ```
 
 #### `POST /bd/records`
-Inserta un registro **solo en base de datos** desde cualquier fuente. **No envía a EmailOctopus.**
+Inserta un registro en base de datos desde cualquier fuente. **Envía automáticamente a EmailOctopus y notifica condicionalmente.**
+
+**CAMPOS OBLIGATORIOS:**
+- `nombre_apellido` (string)
+- `empresa` (string)
+- `telefono2` (string)
+- `correo` (string)
+
+**CAMPOS OPCIONALES:**
+- `ruc_dni` (string, puede ser null)
+- `treq_requerimiento` (string, puede ser null)
+- `origen` (string, default: "UNKNOWN")
+- `asesor_tecnico` (string, se mapea a asesor_in en BD)
+- `observacion` (string, puede ser null)
+- `submission_time` (string ISO format, default: NOW())
 
 **Request Body:**
 ```json
 {
   "nombre_apellido": "Ana García",
   "empresa": "Tech Solutions SAC",
-  "telefono2": "987654321", 
-  "ruc_dni": "20987654321",
+  "telefono2": "987654321",
   "correo": "ana@techsolutions.com",
+  "ruc_dni": "20987654321",
   "treq_requerimiento": "Consulta sobre servicios",
-  "origen": "MOBILE_APP"
+  "origen": "MOBILE_APP",
+  "asesor_tecnico": "Vanessa",
+  "observacion": "Lead importante",
+  "submission_time": "2025-09-09T14:04:27Z"
 }
 ```
 
@@ -110,7 +127,8 @@ Inserta un registro **solo en base de datos** desde cualquier fuente. **No enví
   "status": "success",
   "message": "Registro insertado correctamente en BD.",
   "record_id": 96,
-  "origen": "MOBILE_APP"
+  "origen": "MOBILE_APP",
+  "notification_sent": true
 }
 ```
 
@@ -212,17 +230,18 @@ POST /wix/records
 # Automáticamente: BD (origen="WIX") + EmailOctopus
 ```
 
-### Caso 2: Otras Fuentes → Solo Base de Datos
-Usar cuando tienes datos de **cualquier fuente** (app móvil, API, CSV, etc.) y solo quieres **guardar en BD**.
+### Caso 2: Otras Fuentes → BD + EmailOctopus + Notificación
+Usar cuando tienes datos de **cualquier fuente** (app móvil, API, CSV, etc.) y quieres **guardar en BD + enviar a EmailOctopus + notificar condicionalmente**.
 
 ```bash
 POST /bd/records
 {
   "origen": "MOBILE_APP",  # Especifica la fuente
   "nombre_apellido": "...",
+  "treq_requerimiento": "...",  # Si tiene contenido → envía notificación
   # ... otros campos
 }
-# Solo BD, no EmailOctopus
+# BD + EmailOctopus + Notificación (si treq_requerimiento tiene contenido)
 ```
 
 ### Caso 3: Solo Marketing Email
@@ -240,14 +259,25 @@ Verificar que EmailOctopus esté configurado correctamente.
 GET /octopus/status
 ```
 
-### Caso 5: Flujo Completo Personalizado
-Para control total, usa endpoints por separado:
+### Caso 5: Flujo Completo Automático (Recomendado)
+Para la mayoría de casos, usar el endpoint BD que ahora incluye todo:
 
 ```bash
-# 1. Guardar en BD con origen específico
-POST /bd/records {"origen": "CRM", ...}
+# Un solo endpoint para todo el flujo
+POST /bd/records
+{
+  "origen": "CRM",
+  "treq_requerimiento": "Consulta importante",  # → Activa notificación
+  "asesor_tecnico": "Juan",  # → Se asigna en BD
+  # ... otros campos
+}
+# Resultado: BD + EmailOctopus + Notificación automática
+```
 
-# 2. Enviar a EmailOctopus si es necesario  
+### Caso 6: Solo EmailOctopus (Sin BD)
+Si necesitas enviar solo a EmailOctopus sin guardar en BD:
+
+```bash
 POST /octopus/contacts {...}
 ```
 
@@ -267,14 +297,23 @@ NOW() → submission_time (automático)
 
 ### Cualquier Fuente → Base de Datos (manual)
 ```
+# CAMPOS OBLIGATORIOS
 nombre_apellido → nombre_apellido
 empresa → empresa
 telefono2 → telefono2
-ruc_dni → ruc_dni  
 correo → correo
-treq_requerimiento → treq_requerimiento
-data["origen"] → origen (especificar: "API", "MOBILE_APP", etc.)
-NOW() → submission_time (automático)
+
+# CAMPOS OPCIONALES
+ruc_dni → ruc_dni (puede ser null)
+treq_requerimiento → treq_requerimiento (puede ser null)
+asesor_tecnico → asesor_in (campo en BD)
+observacion → observacion (puede ser null)
+data["origen"] → origen (default: "UNKNOWN")
+data["submission_time"] → submission_time (default: NOW())
+
+# FUNCIONALIDADES AUTOMÁTICAS
+→ Envío a EmailOctopus (siempre)
+→ Notificación de lead (solo si treq_requerimiento tiene contenido)
 ```
 
 ### Cualquier Fuente → EmailOctopus
@@ -292,7 +331,7 @@ Base URL: `https://feedback-califcacion.onrender.com`
 - `GET /wix/records` - Obtener registros WIX
 - `POST /wix/records` - Enviar desde WIX (BD + EmailOctopus)
 - `GET /bd/records` - Obtener todos los registros BD
-- `POST /bd/records` - Guardar desde cualquier fuente (solo BD)
+- `POST /bd/records` - Guardar desde cualquier fuente (BD + EmailOctopus + Notificación)
 - `POST /octopus/contacts` - Solo EmailOctopus
 - `GET /octopus/status` - Estado EmailOctopus
 
@@ -313,6 +352,32 @@ Base URL: `https://feedback-califcacion.onrender.com`
 ## 📝 Notas de Desarrollo
 
 - **Dual Import System**: Soporta tanto desarrollo (`from Mailing.octopus`) como producción (`from app.Mailing.octopus`)
-- **Error Handling**: EmailOctopus failures no afectan el guardado en BD en endpoint WIX
+- **Error Handling**: EmailOctopus failures no afectan el guardado en BD
 - **Origen Tracking**: Campo `origen` permite rastrear la fuente de los datos
 - **Independent Endpoints**: Cada endpoint puede usarse independientemente según necesidades
+
+## ✨ Nuevas Funcionalidades (v2.0)
+
+### 🚀 Endpoint BD Potenciado
+El endpoint `/bd/records` ahora incluye funcionalidades completas:
+- ✅ **Campos obligatorios reducidos**: Solo 4 campos esenciales
+- ✅ **Soporte para asesor técnico**: Campo `asesor_tecnico` → `asesor_in` en BD
+- ✅ **EmailOctopus automático**: Envío automático después de insertar en BD
+- ✅ **Notificaciones condicionales**: Solo envía si `treq_requerimiento` tiene contenido
+- ✅ **Submission time personalizable**: Acepta timestamp específico o usa NOW()
+- ✅ **Campo observación**: Para notas adicionales del lead
+
+### 📧 Sistema de Notificaciones Inteligente
+- **Condicional**: Solo notifica si el lead tiene requerimientos específicos
+- **Automático**: Se integra sin configuración adicional
+- **Robusto**: Errores de notificación no afectan el flujo principal
+
+### 🎯 Casos de Uso Recomendados
+- **WIX**: Usar `/wix/records` (sin cambios, mantiene compatibilidad)
+- **Otras fuentes**: Usar `/bd/records` (funcionalidad completa)
+- **Solo marketing**: Usar `/octopus/contacts` (independiente)
+
+### 🔄 Migración de Datos
+- **Script incluido**: `pruebas/migrate_expoesca.py` para migrar datos de ExpoEsca
+- **Mapeo automático**: Transforma campos automáticamente según origen
+- **Manejo de errores**: Logging completo y recuperación ante fallos
