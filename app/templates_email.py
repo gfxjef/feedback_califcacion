@@ -4,7 +4,7 @@ Templates de email para diferentes tipos de envío de encuestas
 
 def get_email_template_ventas(nombre_cliente, documento, base_url, unique_id, tipo):
     """Template de email para el área de Ventas"""
-    
+
     # Preparar texto del número de documento
     documento_texto = ""
     if documento:
@@ -17,6 +17,29 @@ def get_email_template_ventas(nombre_cliente, documento, base_url, unique_id, ti
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Encuesta de Satisfacción - Ventas</title>
+    <style>
+        /* Estilos responsivos para móviles */
+        @media only screen and (max-width: 600px) {{
+            .rating-button {{
+                width: 32px !important;
+                height: 32px !important;
+            }}
+            .rating-number {{
+                font-size: 16px !important;
+                line-height: 32px !important;
+            }}
+        }}
+        @media only screen and (max-width: 380px) {{
+            .rating-button {{
+                width: 30px !important;
+                height: 30px !important;
+            }}
+            .rating-number {{
+                font-size: 14px !important;
+                line-height: 30px !important;
+            }}
+        }}
+    </style>
 </head>
 <body style="margin:0; padding:0; background-color:#f4f4f4; font-family: Arial, sans-serif;">
     <!-- Contenedor principal -->
@@ -39,14 +62,6 @@ def get_email_template_ventas(nombre_cliente, documento, base_url, unique_id, ti
                                 Hola, <span style="font-weight:bold; color:#3e4660;">{nombre_cliente}</span>
                             </h1>
                             {documento_texto}
-                        </td>
-                    </tr>
-                    <!-- Imagen Opinión Importante -->
-                    <tr>
-                        <td align="center" style="padding:5px;">
-                            <img src="https://www.kossomet.com/AppUp/feedback/opinion_importante.jpg"
-                                 alt="Opinión Importante"
-                                 style="display:block; border:none; width:auto; max-width:100%; height:auto;">
                         </td>
                     </tr>
                     <!-- Texto específico para Ventas -->
@@ -72,20 +87,27 @@ def get_email_template_ventas(nombre_cliente, documento, base_url, unique_id, ti
                                     <td style="font-size:14px; color:#666; text-align:right;">Bastante<br/>Satisfecho</td>
                                 </tr>
                             </table>
-                            <!-- Imágenes individuales clickeables -->
-                            <table border="0" cellspacing="2" cellpadding="2" style="text-align:center; margin:0 auto;">
+                            <!-- Botones de calificación con números -->
+                            <table border="0" cellspacing="1" cellpadding="0" style="text-align:center; margin:0 auto;">
                                 <tr>"""
 
-    # Generar los 10 botones con imágenes individuales
+    # Generar los 10 botones con diseño uniforme gris
     for i in range(1, 11):
         link = f"{base_url}/encuesta?unique_id={unique_id}&calificacion={i}&tipo={tipo}"
+        # Color uniforme gris claro con texto negro
+        bg_color = "#e8e8e8"  # Gris claro
+        text_color = "#333333"  # Negro oscuro
+
         html_body += f"""
                                     <td style="padding:1px;">
-                                        <a href="{link}" target="_blank" style="text-decoration:none;">
-                                            <img src="https://www.kossomet.com/AppUp/feedback/{i}.jpg" 
-                                                 alt="Calificación {i}" 
-                                                 title="Calificación {i}"
-                                                 style="display:block; border:none; width:auto; height:auto; max-width:45px;">
+                                        <a href="{link}" target="_blank" style="text-decoration:none; display:block;">
+                                            <table class="rating-button" border="0" cellspacing="0" cellpadding="0" style="width:45px; height:45px; background-color:{bg_color}; border-radius:4px; border:1px solid #cccccc;">
+                                                <tr>
+                                                    <td class="rating-number" style="text-align:center; vertical-align:middle; color:{text_color}; font-size:20px; font-weight:bold; line-height:45px;">
+                                                        {i}
+                                                    </td>
+                                                </tr>
+                                            </table>
                                         </a>
                                     </td>"""
 
@@ -150,7 +172,7 @@ def get_email_template_ventas(nombre_cliente, documento, base_url, unique_id, ti
 
 def get_email_template_operaciones(nombre_cliente, documento, base_url, unique_id, tipo):
     """Template de email para el área de Operaciones"""
-    
+
     # Preparar texto del número de documento
     documento_texto = ""
     if documento:
@@ -163,6 +185,29 @@ def get_email_template_operaciones(nombre_cliente, documento, base_url, unique_i
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Encuesta de Satisfacción - Operaciones</title>
+    <style>
+        /* Estilos responsivos para móviles */
+        @media only screen and (max-width: 600px) {{
+            .rating-button {{
+                width: 32px !important;
+                height: 32px !important;
+            }}
+            .rating-number {{
+                font-size: 16px !important;
+                line-height: 32px !important;
+            }}
+        }}
+        @media only screen and (max-width: 380px) {{
+            .rating-button {{
+                width: 30px !important;
+                height: 30px !important;
+            }}
+            .rating-number {{
+                font-size: 14px !important;
+                line-height: 30px !important;
+            }}
+        }}
+    </style>
 </head>
 <body style="margin:0; padding:0; background-color:#f4f4f4; font-family: Arial, sans-serif;">
     <!-- Contenedor principal -->
@@ -185,14 +230,6 @@ def get_email_template_operaciones(nombre_cliente, documento, base_url, unique_i
                                 Hola, <span style="font-weight:bold; color:#3e4660;">{nombre_cliente}</span>
                             </h1>
                             {documento_texto}
-                        </td>
-                    </tr>
-                    <!-- Imagen Opinión Importante -->
-                    <tr>
-                        <td align="center" style="padding:5px;">
-                            <img src="https://www.kossomet.com/AppUp/feedback/opinion_importante.jpg"
-                                 alt="Opinión Importante"
-                                 style="display:block; border:none; width:auto; max-width:100%; height:auto;">
                         </td>
                     </tr>
                     <!-- Texto específico para Operaciones -->
@@ -218,20 +255,27 @@ def get_email_template_operaciones(nombre_cliente, documento, base_url, unique_i
                                     <td style="font-size:14px; color:#666; text-align:right;">Bastante<br/>Satisfecho</td>
                                 </tr>
                             </table>
-                            <!-- Imágenes individuales clickeables -->
-                            <table border="0" cellspacing="2" cellpadding="2" style="text-align:center; margin:0 auto;">
+                            <!-- Botones de calificación con números -->
+                            <table border="0" cellspacing="1" cellpadding="0" style="text-align:center; margin:0 auto;">
                                 <tr>"""
 
-    # Generar los 10 botones con imágenes individuales
+    # Generar los 10 botones con diseño uniforme gris
     for i in range(1, 11):
         link = f"{base_url}/encuesta?unique_id={unique_id}&calificacion={i}&tipo={tipo}"
+        # Color uniforme gris claro con texto negro
+        bg_color = "#e8e8e8"  # Gris claro
+        text_color = "#333333"  # Negro oscuro
+
         html_body += f"""
                                     <td style="padding:1px;">
-                                        <a href="{link}" target="_blank" style="text-decoration:none;">
-                                            <img src="https://www.kossomet.com/AppUp/feedback/{i}.jpg" 
-                                                 alt="Calificación {i}" 
-                                                 title="Calificación {i}"
-                                                 style="display:block; border:none; width:auto; height:auto; max-width:45px;">
+                                        <a href="{link}" target="_blank" style="text-decoration:none; display:block;">
+                                            <table class="rating-button" border="0" cellspacing="0" cellpadding="0" style="width:45px; height:45px; background-color:{bg_color}; border-radius:4px; border:1px solid #cccccc;">
+                                                <tr>
+                                                    <td class="rating-number" style="text-align:center; vertical-align:middle; color:{text_color}; font-size:20px; font-weight:bold; line-height:45px;">
+                                                        {i}
+                                                    </td>
+                                                </tr>
+                                            </table>
                                         </a>
                                     </td>"""
 
@@ -296,7 +340,7 @@ def get_email_template_operaciones(nombre_cliente, documento, base_url, unique_i
 
 def get_email_template_coordinador(nombre_cliente, documento, base_url, unique_id, tipo):
     """Template de email para Coordinador (Conformidad) - mantiene diseño original"""
-    
+
     # Preparar texto del número de documento
     documento_texto = ""
     if documento:
@@ -309,6 +353,29 @@ def get_email_template_coordinador(nombre_cliente, documento, base_url, unique_i
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Encuesta de Satisfacción - Coordinación</title>
+    <style>
+        /* Estilos responsivos para móviles */
+        @media only screen and (max-width: 600px) {{
+            .rating-button {{
+                width: 32px !important;
+                height: 32px !important;
+            }}
+            .rating-number {{
+                font-size: 16px !important;
+                line-height: 32px !important;
+            }}
+        }}
+        @media only screen and (max-width: 380px) {{
+            .rating-button {{
+                width: 30px !important;
+                height: 30px !important;
+            }}
+            .rating-number {{
+                font-size: 14px !important;
+                line-height: 30px !important;
+            }}
+        }}
+    </style>
 </head>
 <body style="margin:0; padding:0; background-color:#f4f4f4; font-family: Arial, sans-serif;">
     <!-- Contenedor principal -->
@@ -331,14 +398,6 @@ def get_email_template_coordinador(nombre_cliente, documento, base_url, unique_i
                                 Hola, <span style="font-weight:bold; color:#3e4660;">{nombre_cliente}</span>
                             </h1>
                             {documento_texto}
-                        </td>
-                    </tr>
-                    <!-- Imagen Opinión Importante -->
-                    <tr>
-                        <td align="center" style="padding:5px;">
-                            <img src="https://www.kossomet.com/AppUp/feedback/opinion_importante.jpg"
-                                 alt="Opinión Importante"
-                                 style="display:block; border:none; width:auto; max-width:100%; height:auto;">
                         </td>
                     </tr>
                     <!-- Texto específico para Coordinador -->
@@ -373,20 +432,27 @@ def get_email_template_coordinador(nombre_cliente, documento, base_url, unique_i
                                     <td style="font-size:14px; color:#666; text-align:right;">Bastante<br/>Satisfecho</td>
                                 </tr>
                             </table>
-                            <!-- Imágenes individuales clickeables -->
-                            <table border="0" cellspacing="2" cellpadding="2" style="text-align:center; margin:0 auto;">
+                            <!-- Botones de calificación con números -->
+                            <table border="0" cellspacing="1" cellpadding="0" style="text-align:center; margin:0 auto;">
                                 <tr>"""
 
-    # Generar los 10 botones con imágenes individuales
+    # Generar los 10 botones con diseño uniforme gris
     for i in range(1, 11):
         link = f"{base_url}/encuesta?unique_id={unique_id}&calificacion={i}&tipo={tipo}"
+        # Color uniforme gris claro con texto negro
+        bg_color = "#e8e8e8"  # Gris claro
+        text_color = "#333333"  # Negro oscuro
+
         html_body += f"""
                                     <td style="padding:1px;">
-                                        <a href="{link}" target="_blank" style="text-decoration:none;">
-                                            <img src="https://www.kossomet.com/AppUp/feedback/{i}.jpg" 
-                                                 alt="Calificación {i}" 
-                                                 title="Calificación {i}"
-                                                 style="display:block; border:none; width:auto; height:auto; max-width:45px;">
+                                        <a href="{link}" target="_blank" style="text-decoration:none; display:block;">
+                                            <table class="rating-button" border="0" cellspacing="0" cellpadding="0" style="width:45px; height:45px; background-color:{bg_color}; border-radius:4px; border:1px solid #cccccc;">
+                                                <tr>
+                                                    <td class="rating-number" style="text-align:center; vertical-align:middle; color:{text_color}; font-size:20px; font-weight:bold; line-height:45px;">
+                                                        {i}
+                                                    </td>
+                                                </tr>
+                                            </table>
                                         </a>
                                     </td>"""
 
@@ -451,10 +517,10 @@ def get_email_template_coordinador(nombre_cliente, documento, base_url, unique_i
 
 def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, unique_id, tipo):
     """Template de email para Ventas cuando la calificación es baja (1-3)"""
-    
+
     # Preparar texto del documento
     documento_texto = f'<p style="color:#6cb79a; font-size:19px; font-weight:bold; margin:15px 0; text-align:center;">Número de orden de trabajo: {documento}</p>' if documento else ""
-    
+
     html_body = f"""<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -462,6 +528,15 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Queremos Mejorar - Ventas</title>
+    <style>
+        /* Estilos responsivos para móviles */
+        @media only screen and (max-width: 600px) {{
+            .feedback-button {{
+                font-size: 16px !important;
+                padding: 12px 15px !important;
+            }}
+        }}
+    </style>
 </head>
 <body style="margin:0; padding:0; background-color:#f4f4f4; font-family: Arial, sans-serif;">
     <!-- Contenedor principal -->
@@ -472,7 +547,7 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
                     <!-- Encabezado con imagen -->
                     <tr>
                         <td style="padding:0; margin:0;" align="center">
-                            <img src="https://www.kossomet.com/AppUp/feedback/calif_reg.jpg"
+                            <img src="https://atusalud.to1.fcomet.com/feedback/calif_reg.jpg"
                                 alt="Header"
                                 style="display:block; border:none; width:100%; max-width:100%; height:auto;">
                         </td>
@@ -502,7 +577,8 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
                             <table border="0" cellspacing="3" cellpadding="5" style="margin:0 auto;">
                                 <tr>
                                     <td>
-                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=falta_informacion" 
+                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=falta_informacion"
+                                           class="feedback-button"
                                            style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Falta de información sobre servicios
                                         </a>
@@ -510,7 +586,8 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=demora_respuesta" 
+                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=demora_respuesta"
+                                           class="feedback-button"
                                            style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Demora en respuesta a consultas
                                         </a>
@@ -518,7 +595,8 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=presion_venta" 
+                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=presion_venta"
+                                           class="feedback-button"
                                            style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Sensación de presión en la venta
                                         </a>
@@ -526,7 +604,8 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=incapacidad_resolver" 
+                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=incapacidad_resolver"
+                                           class="feedback-button"
                                            style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Incapacidad para resolver dudas
                                         </a>
@@ -567,10 +646,10 @@ def get_email_template_lamentamos_ventas(nombre_cliente, documento, base_url, un
 
 def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_url, unique_id, tipo):
     """Template de email para Operaciones cuando la calificación es baja (1-3)"""
-    
+
     # Preparar texto del documento
     documento_texto = f'<p style="color:#6cb79a; font-size:19px; font-weight:bold; margin:15px 0; text-align:center;">Número de orden: {documento}</p>' if documento else ""
-    
+
     html_body = f"""<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -578,6 +657,15 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Queremos Mejorar - Operaciones</title>
+    <style>
+        /* Estilos responsivos para móviles */
+        @media only screen and (max-width: 600px) {{
+            .feedback-button {{
+                font-size: 16px !important;
+                padding: 12px 15px !important;
+            }}
+        }}
+    </style>
 </head>
 <body style="margin:0; padding:0; background-color:#f4f4f4; font-family: Arial, sans-serif;">
     <!-- Contenedor principal -->
@@ -588,7 +676,7 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                     <!-- Encabezado con imagen -->
                     <tr>
                         <td style="padding:0; margin:0;" align="center">
-                            <img src="https://www.kossomet.com/AppUp/feedback/calif_reg.jpg"
+                            <img src="https://atusalud.to1.fcomet.com/feedback/calif_reg.jpg"
                                 alt="Header"
                                 style="display:block; border:none; width:100%; max-width:100%; height:auto;">
                         </td>
@@ -618,7 +706,8 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                             <table border="0" cellspacing="3" cellpadding="5" style="margin:0 auto;">
                                 <tr>
                                     <td>
-                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=comunicacion_deficiente" 
+                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=comunicacion_deficiente"
+                                           class="feedback-button"
                                            style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Comunicación deficiente para coordinar servicio
                                         </a>
@@ -626,7 +715,8 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=fecha_lejana" 
+                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=fecha_lejana"
+                                           class="feedback-button"
                                            style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Fecha disponible muy lejana
                                         </a>
@@ -634,7 +724,8 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=incumplimiento_fecha" 
+                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=incumplimiento_fecha"
+                                           class="feedback-button"
                                            style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Incumplimiento de fecha acordada
                                         </a>
@@ -642,7 +733,8 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=atencion_insatisfactoria" 
+                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=atencion_insatisfactoria"
+                                           class="feedback-button"
                                            style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Atención técnica insatisfactoria
                                         </a>
@@ -650,7 +742,8 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=demora_informes" 
+                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=demora_informes"
+                                           class="feedback-button"
                                            style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Demora en la entrega de informes
                                         </a>
@@ -658,7 +751,8 @@ def get_email_template_lamentamos_operaciones(nombre_cliente, documento, base_ur
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=demora_consultas" 
+                                        <a href="{base_url}/feedback_especifico?unique_id={unique_id}&tipo={tipo}&motivo=demora_consultas"
+                                           class="feedback-button"
                                            style="display:block; background-color:#e8e8e8; color:#555; padding:15px 20px; text-decoration:none; border-radius:25px; text-align:center; font-size:20px; margin:2px 0;">
                                             Demora en la Respuestas a consultas técnicas
                                         </a>
