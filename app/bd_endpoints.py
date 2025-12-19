@@ -6,12 +6,14 @@ try:
     from app.Mailing.octopus import add_contact_to_octopus
     from app.Mailing.send_lead_notification import send_lead_notification_email
     from app.gemini.service import analizar_lead_automatico
+    from app.sync_service import enviar_lead_a_sistema_externo
 except ImportError:
     # Importaciones relativas (para desarrollo con run_app.py)
     from db import get_db_connection
     from Mailing.octopus import add_contact_to_octopus
     from Mailing.send_lead_notification import send_lead_notification_email
     from gemini.service import analizar_lead_automatico
+    from sync_service import enviar_lead_a_sistema_externo
 
 bd_bp = Blueprint('bd_bp', __name__)
 TABLE_NAME = "WIX"  # Nombre exacto de la tabla en tu BD
@@ -215,13 +217,32 @@ def insert_bd_record():
             # Error en Gemini no debe afectar el flujo principal
             print(f"⚠️ Error en análisis Gemini (no crítico): {gemini_error}")
 
+        # ENVÍO A SISTEMA EXTERNO (SINCRONIZACIÓN)
+        sync_sent = False
+        if record_id:
+            try:
+                sync_result = enviar_lead_a_sistema_externo(record_id)
+
+                if sync_result.get('success'):
+                    sync_sent = True
+                    print(f"✅ Lead {record_id} enviado a sistema externo")
+                elif sync_result.get('skipped'):
+                    print(f"⏭️ Sincronización deshabilitada para lead {record_id}")
+                else:
+                    print(f"⚠️ Error al enviar lead {record_id} a sistema externo: {sync_result.get('message')}")
+
+            except Exception as sync_error:
+                # Error en sync no debe afectar el flujo principal
+                print(f"⚠️ Error en sincronización (no crítico): {sync_error}")
+
         return jsonify({
             'status': 'success',
             'message': 'Registro insertado correctamente en BD.',
             'record_id': record_id,
             'origen': origen,
             'notification_sent': notification_sent,
-            'gemini_analyzed': gemini_analyzed
+            'gemini_analyzed': gemini_analyzed,
+            'sync_sent': sync_sent
         }), 201
     except Exception as err:
         return jsonify({'status': 'error', 'message': str(err)}), 500

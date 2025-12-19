@@ -18,6 +18,7 @@ try:
     from app.Mailing.octopus_endpoints import octopus_bp
     from app.bd_endpoints import bd_bp
     from app.records import records_bp
+    from app.sync_endpoints import sync_bp
 except ImportError:
     # Si falla, usa importaciones relativas (para desarrollo con run_app.py)
     from db import get_db_connection
@@ -28,6 +29,7 @@ except ImportError:
     from Mailing.octopus_endpoints import octopus_bp
     from bd_endpoints import bd_bp
     from records import records_bp
+    from sync_endpoints import sync_bp
 
 app = Flask(__name__)
 
@@ -475,6 +477,7 @@ app.register_blueprint(wix_bp, url_prefix='/wix')
 app.register_blueprint(octopus_bp, url_prefix='/octopus')
 app.register_blueprint(bd_bp, url_prefix='/bd')
 app.register_blueprint(records_bp)  # Registrar el blueprint de records
+app.register_blueprint(sync_bp, url_prefix='/sync')  # Sincronización con sistema externo
 
 
 if __name__ == '__main__':
