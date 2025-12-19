@@ -5,11 +5,13 @@ try:
     from app.db import get_db_connection
     from app.Mailing.octopus import add_contact_to_octopus
     from app.Mailing.send_lead_notification import send_lead_notification_email
+    from app.gemini.service import analizar_lead_automatico
 except ImportError:
     # Importaciones relativas (para desarrollo con run_app.py)
     from db import get_db_connection
     from Mailing.octopus import add_contact_to_octopus
     from Mailing.send_lead_notification import send_lead_notification_email
+    from gemini.service import analizar_lead_automatico
 
 wix_bp = Blueprint('wix_bp', __name__)
 TABLE_NAME = "WIX"  # Nombre exacto de la tabla en tu BD
@@ -106,6 +108,9 @@ def insert_record():
         cursor.execute(insert_query, values)
         cnx.commit()
 
+        # Obtener el ID del registro insertado para Gemini
+        record_id = cursor.lastrowid
+
         # Llamada a la función para enviar el contacto a EmailOctopus
         oct_response = add_contact_to_octopus(
             email_address=data["correo"],
@@ -143,7 +148,33 @@ def insert_record():
             # Error en notificación no debe afectar el flujo principal
             print(f"⚠️ Error al enviar notificación de lead WIX: {notification_error}")
 
-        return jsonify({'status': 'success', 'message': 'Registro insertado correctamente.'}), 201
+        # ANÁLISIS AUTOMÁTICO CON GEMINI IA
+        gemini_result = None
+        try:
+            lead_data_gemini = {
+                'empresa': data["empresa"],
+                'ruc_dni': data.get("ruc_dni"),
+                'treq_requerimiento': data.get("treq_requerimiento"),
+                'origen': "WIX"
+            }
+
+            gemini_result = analizar_lead_automatico(lead_data_gemini, record_id)
+
+            if gemini_result.get('success'):
+                print(f"✅ Análisis Gemini completado para lead {record_id}: siek_cliente={gemini_result.get('siek_cliente')}")
+            else:
+                print(f"⚠️ Análisis Gemini sin resultados: {gemini_result.get('error', 'Sin datos suficientes')}")
+
+        except Exception as gemini_error:
+            # Error en Gemini no debe afectar el flujo principal
+            print(f"⚠️ Error en análisis Gemini (no crítico): {gemini_error}")
+
+        return jsonify({
+            'status': 'success',
+            'message': 'Registro insertado correctamente.',
+            'record_id': record_id,
+            'gemini_analyzed': gemini_result.get('success', False) if gemini_result else False
+        }), 201
     except Exception as err:
         return jsonify({'status': 'error', 'message': str(err)}), 500
     finally:

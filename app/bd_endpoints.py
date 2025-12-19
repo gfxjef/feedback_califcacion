@@ -5,11 +5,13 @@ try:
     from app.db import get_db_connection
     from app.Mailing.octopus import add_contact_to_octopus
     from app.Mailing.send_lead_notification import send_lead_notification_email
+    from app.gemini.service import analizar_lead_automatico
 except ImportError:
     # Importaciones relativas (para desarrollo con run_app.py)
     from db import get_db_connection
     from Mailing.octopus import add_contact_to_octopus
     from Mailing.send_lead_notification import send_lead_notification_email
+    from gemini.service import analizar_lead_automatico
 
 bd_bp = Blueprint('bd_bp', __name__)
 TABLE_NAME = "WIX"  # Nombre exacto de la tabla en tu BD
@@ -190,12 +192,36 @@ def insert_bd_record():
             except Exception as notification_error:
                 print(f"⚠️ Error al enviar notificación de lead: {notification_error}")
 
+        # ANÁLISIS AUTOMÁTICO CON GEMINI IA
+        gemini_result = None
+        gemini_analyzed = False
+        try:
+            lead_data_gemini = {
+                'empresa': data["empresa"],
+                'ruc_dni': ruc_dni,
+                'treq_requerimiento': treq_requerimiento,
+                'origen': origen
+            }
+
+            gemini_result = analizar_lead_automatico(lead_data_gemini, record_id)
+
+            if gemini_result.get('success'):
+                gemini_analyzed = True
+                print(f"✅ Análisis Gemini completado para lead {record_id}: siek_cliente={gemini_result.get('siek_cliente')}")
+            else:
+                print(f"⚠️ Análisis Gemini sin resultados: {gemini_result.get('error', 'Sin datos suficientes')}")
+
+        except Exception as gemini_error:
+            # Error en Gemini no debe afectar el flujo principal
+            print(f"⚠️ Error en análisis Gemini (no crítico): {gemini_error}")
+
         return jsonify({
             'status': 'success',
             'message': 'Registro insertado correctamente en BD.',
             'record_id': record_id,
             'origen': origen,
-            'notification_sent': notification_sent
+            'notification_sent': notification_sent,
+            'gemini_analyzed': gemini_analyzed
         }), 201
     except Exception as err:
         return jsonify({'status': 'error', 'message': str(err)}), 500
