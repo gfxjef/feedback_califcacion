@@ -69,7 +69,7 @@ def get_all_leads():
         - fecha_desde: YYYY-MM-DD - Fecha mínima de asignación
         - fecha_hasta: YYYY-MM-DD - Fecha máxima de asignación
         - origen: string - Filtrar por origen (WIX, UNKNOWN, etc.)
-        - limit: int - Máximo de registros (default: 100)
+        - limit: int - Máximo de registros (default: sin limite)
         - offset: int - Registros a saltar para paginación
 
     Returns:
@@ -85,7 +85,7 @@ def get_all_leads():
     fecha_desde = request.args.get('fecha_desde', None)
     fecha_hasta = request.args.get('fecha_hasta', None)
     origen = request.args.get('origen', None)
-    limit = request.args.get('limit', 100, type=int)
+    limit = request.args.get('limit', 10000, type=int)  # Sin limite por defecto
     offset = request.args.get('offset', 0, type=int)
 
     # Obtener leads
